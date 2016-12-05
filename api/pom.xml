@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+  ~ See license text in LICENSE.txt
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>tickle-repo</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>tickle-repo-api</artifactId>
+  <name>tickle-repo-api</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-jdbc-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>eclipselink</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>reserve-network-port</id>
+            <goals>
+              <goal>reserve-network-port</goal>
+            </goals>
+            <phase>initialize</phase>
+            <configuration>
+              <maxPortNumber>65000</maxPortNumber>
+              <minPortNumber>60000</minPortNumber>
+              <portNames>
+                <portName>postgresql.port</portName>
+              </portNames>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>dk.dbc</groupId>
+        <artifactId>postgresql-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>start-postgresql</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <pgPort>${postgresql.port}</pgPort>
+              <pgDbName>ticklerepo</pgDbName>
+              <pgDbScripts>
+              </pgDbScripts>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop-postgresql</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>shutdown</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemPropertyVariables>
+            <postgresql.port>${postgresql.port}</postgresql.port>
+          </systemPropertyVariables>-->
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
