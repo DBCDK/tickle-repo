@@ -5,3 +5,5 @@ DBC Kilde repositorie (tickle-repo)
 
 Documentation
 -------------
+
+A project wishing to utilize the API must provide a DataSource resource via JNDI name jdbc/tickle-repo.
