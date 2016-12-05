@@ -40,4 +40,5 @@ CREATE TABLE record (
 );
 CREATE INDEX record_batch_index ON record(batch);
 CREATE INDEX record_dataset_index ON record(dataset);
+CREATE INDEX record_localId_index ON record(localId);
 CREATE INDEX record_status_index ON record(status);
