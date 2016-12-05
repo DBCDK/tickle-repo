@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+ * See license text in LICENSE.txt
+ */
+
 package dk.dbc.ticklerepo.dto;
 
 import dk.dbc.commons.testutil.Assert;
