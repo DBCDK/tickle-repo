@@ -10,11 +10,15 @@
              version="2.1">
   <persistence-unit name="tickleRepoPU" transaction-type="JTA">
     <jta-data-source>jdbc/batch-exchange</jta-data-source>
+    <class>dk.dbc.ticklerepo.dto.RecordStatusConverter</class>
+    <class>dk.dbc.ticklerepo.dto.Record</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="tickleRepoIT" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.ticklerepo.dto.RecordStatusConverter</class>
+    <class>dk.dbc.ticklerepo.dto.Record</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
