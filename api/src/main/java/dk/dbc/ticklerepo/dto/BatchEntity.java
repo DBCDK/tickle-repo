@@ -6,6 +6,7 @@
 package dk.dbc.ticklerepo.dto;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -34,7 +35,7 @@ public class BatchEntity {
     @Column(nullable = false)
     private int batchKey;
 
-    @Column(nullable = false)
+    @Convert(converter = BatchEntityTypeConverter.class)
     private Type type;
 
     @Column(insertable = false, updatable = false)
