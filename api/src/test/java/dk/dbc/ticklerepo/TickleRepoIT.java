@@ -16,6 +16,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import java.io.File;
 import java.io.IOException;
@@ -130,6 +131,47 @@ public class TickleRepoIT {
         final TickleRepo tickleRepo = new TickleRepo();
         tickleRepo.entityManager = entityManager;
         return tickleRepo;
+    }
+
+    private <T> T transaction_scoped(CodeBlockExecution<T> codeBlock) {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            return codeBlock.execute();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            transaction.commit();
+        }
+    }
+
+    private void transaction_scoped(CodeBlockVoidExecution codeBlock) {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            codeBlock.execute();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            transaction.commit();
+        }
+    }
+
+    /**
+     * Represents a code block execution with return value
+     * @param <T> return type of the code block execution
+     */
+    @FunctionalInterface
+    interface CodeBlockExecution<T> {
+        T execute() throws Exception;
+    }
+
+    /**
+     * Represents a code block execution without return value
+     */
+    @FunctionalInterface
+    interface CodeBlockVoidExecution {
+        void execute() throws Exception;
     }
 
     private static int getPostgresqlPort() {
