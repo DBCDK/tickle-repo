@@ -15,21 +15,24 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class BatchEntityTypeConverterTest {
+public class BatchTypeConverterTest {
 
-    private final BatchEntityTypeConverter converter = new BatchEntityTypeConverter();
+    private final BatchTypeConverter converter = new BatchTypeConverter();
 
     @Test
-    public void convertToDatabaseColumn_typeArgIsNull_throws() {
-        Assert.assertThat(() -> converter.convertToDatabaseColumn(null), isThrowing(IllegalArgumentException.class));
+    public void convertToDatabaseColumn_typeArgIsNull_returnsNullValuedDatabaseObject() {
+        final Object pgObject = converter.convertToDatabaseColumn(null);
+        assertThat("PGobject", pgObject, is(notNullValue()));
+        assertThat("PGobject type", ((PGobject) pgObject).getType(), is("batch_type"));
+        assertThat("PGobject value", ((PGobject) pgObject).getValue(), is(nullValue()));
     }
 
     @Test
     public void convertToDatabaseColumn() {
-        final Object pgObject = converter.convertToDatabaseColumn(BatchEntity.Type.ACTIVE);
+        final Object pgObject = converter.convertToDatabaseColumn(Batch.Type.TOTAL);
         assertThat("PGobject", pgObject, is(notNullValue()));
         assertThat("PGobject type", ((PGobject) pgObject).getType(), is("batch_type"));
-        assertThat("PGobject value", ((PGobject) pgObject).getValue(), is(BatchEntity.Type.ACTIVE.name()));
+        assertThat("PGobject value", ((PGobject) pgObject).getValue(), is(Batch.Type.TOTAL.name()));
     }
 
     @Test
@@ -39,9 +42,8 @@ public class BatchEntityTypeConverterTest {
 
     @Test
     public void convertToEntityAttribute() {
-        assertThat("ACTIVE", converter.convertToEntityAttribute("ACTIVE"), is(BatchEntity.Type.ACTIVE));
-        assertThat("RESET", converter.convertToEntityAttribute("RESET"), is(BatchEntity.Type.RESET));
-        assertThat("DELETED", converter.convertToEntityAttribute("DELETED"), is(BatchEntity.Type.DELETED));
+        assertThat("TOTAL", converter.convertToEntityAttribute("TOTAL"), is(Batch.Type.TOTAL));
+        assertThat("INCREMENTAL", converter.convertToEntityAttribute("INCREMENTAL"), is(Batch.Type.INCREMENTAL));
         assertThat("UNKNOWN", converter.convertToEntityAttribute("UNKNOWN"), is(nullValue()));
     }
 }

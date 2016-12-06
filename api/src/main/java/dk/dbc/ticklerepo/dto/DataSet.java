@@ -15,16 +15,16 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "dataset")
-public class DataSetEntity {
+public class DataSet {
 
     @Id
     @SequenceGenerator(
-            name = "entry_id_seq",
-            sequenceName = "entry_id_seq",
+            name = "dataset_id_seq",
+            sequenceName = "dataset_id_seq",
             allocationSize = 1)
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "entry_id_seq")
+            generator = "dataset_id_seq")
     @Column(updatable = false)
     private int id;
 
@@ -37,7 +37,7 @@ public class DataSetEntity {
         return id;
     }
 
-    public DataSetEntity withId(int id) {
+    public DataSet withId(int id) {
         this.id = id;
         return this;
     }
@@ -46,7 +46,7 @@ public class DataSetEntity {
         return name;
     }
 
-    public DataSetEntity withName(String name) {
+    public DataSet withName(String name) {
         this.name = name;
         return this;
     }
@@ -55,7 +55,7 @@ public class DataSetEntity {
         return displayName;
     }
 
-    public DataSetEntity withDisplayName(String displayName) {
+    public DataSet withDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }

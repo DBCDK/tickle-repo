@@ -11,21 +11,27 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "batch")
-public class BatchEntity {
+public class Batch {
 
     public enum Type {
-        ACTIVE,
-        DELETED,
-        RESET
+        TOTAL,
+        INCREMENTAL
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(
+            name = "batch_id_seq",
+            sequenceName = "batch_id_seq",
+            allocationSize = 1)
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "batch_id_seq")
     @Column(updatable = false)
     private int id;
 
@@ -35,7 +41,7 @@ public class BatchEntity {
     @Column(nullable = false)
     private int batchKey;
 
-    @Convert(converter = BatchEntityTypeConverter.class)
+    @Convert(converter = BatchTypeConverter.class)
     private Type type;
 
     @Column(insertable = false, updatable = false)
@@ -47,7 +53,7 @@ public class BatchEntity {
         return id;
     }
 
-    public BatchEntity withId(int id) {
+    public Batch withId(int id) {
         this.id = id;
         return this;
     }
@@ -56,7 +62,7 @@ public class BatchEntity {
         return dataset;
     }
 
-    public BatchEntity withDataset(int dataset) {
+    public Batch withDataset(int dataset) {
         this.dataset = dataset;
         return this;
     }
@@ -65,7 +71,7 @@ public class BatchEntity {
         return batchKey;
     }
 
-    public BatchEntity withBatchKey(int batchKey) {
+    public Batch withBatchKey(int batchKey) {
         this.batchKey = batchKey;
         return this;
     }
@@ -74,7 +80,7 @@ public class BatchEntity {
         return type;
     }
 
-    public BatchEntity withType(Type type) {
+    public Batch withType(Type type) {
         this.type = type;
         return this;
     }
@@ -83,7 +89,7 @@ public class BatchEntity {
         return timeOfCreation;
     }
 
-    public BatchEntity withTimeOfCreation(Timestamp timeOfCreation) {
+    public Batch withTimeOfCreation(Timestamp timeOfCreation) {
         this.timeOfCreation = timeOfCreation;
         return this;
     }
@@ -92,7 +98,7 @@ public class BatchEntity {
         return timeOfCompletion;
     }
 
-    public BatchEntity withTimeOfCompletion(Timestamp timeOfCompletion) {
+    public Batch withTimeOfCompletion(Timestamp timeOfCompletion) {
         this.timeOfCompletion = timeOfCompletion;
         return this;
     }
