@@ -11,14 +11,23 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 import javax.persistence.SequenceGenerator;
 import java.sql.Timestamp;
 import java.util.Date;
 
+
 @Entity
+@NamedQueries({
+    @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY)
+})
 public class Record {
+    public static final String GET_RECORDS_IN_BATCH_QUERY = "SELECT record FROM Record record WHERE record.batch = :batch ORDER BY record.id ASC";
+    public static final String GET_RECORDS_IN_BATCH_QUERY_NAME = "getRecordsInBatch";
+
     public enum Status {
         ACTIVE,
         DELETED,
