@@ -60,7 +60,7 @@ public class Record {
     private Timestamp timeOfLastModification;
 
     private byte[] content;
-    private String chksum;
+    private String checksum;
 
     public Record() {}
 
@@ -144,12 +144,26 @@ public class Record {
         return this;
     }
 
-    public String getChksum() {
-        return chksum;
+    public String getChecksum() {
+        return checksum;
     }
 
-    public Record withChksum(String chksum) {
-        this.chksum = chksum;
+    public Record withChecksum(String checksum) {
+        this.checksum = checksum;
+        return this;
+    }
+
+    /**
+     * Updates batch for this record if given checksum indicates a change when compared to current checksum
+     * @param batch record batch
+     * @param checksum new checksum
+     * @return this record
+     */
+    public Record updateBatchIfModified(Batch batch, String checksum) {
+        if (this.checksum == null || !this.checksum.equals(checksum)) {
+            this.batch = batch.getId();
+            this.checksum = checksum;
+        }
         return this;
     }
 

@@ -36,7 +36,7 @@ CREATE TABLE record (
   timeOfCreation          TIMESTAMP DEFAULT clock_timestamp(),
   timeOfLastModification  TIMESTAMP,
   content                 BYTEA NOT NULL,
-  chksum                  TEXT NOT NULL
+  checksum                TEXT NOT NULL
 );
 CREATE INDEX record_batch_index ON record(batch);
 CREATE INDEX record_dataset_index ON record(dataset);
