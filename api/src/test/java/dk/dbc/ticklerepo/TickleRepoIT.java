@@ -250,7 +250,7 @@ public class TickleRepoIT {
 
     @Test
     public void closingIncrementalBatchSetsTimeOfCompletion() {
-        final LinkedList<Record> expectedRecords = new LinkedList<>();
+       final LinkedList<Record> expectedRecords = new LinkedList<>();
         expectedRecords.add(new Record().withLocalId("local3_2_1").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_2").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_3").withStatus(Record.Status.ACTIVE));
@@ -280,11 +280,14 @@ public class TickleRepoIT {
         entityManager.refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
     }
+
     @Test
     public void gettingNextBatchWhenCompleted() {
         final Batch batch2 = entityManager.find(Batch.class, 2);
         final Batch batch3 = entityManager.find(Batch.class, 3);
+
         transaction_scoped(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
+
         assertThat(tickleRepo().getNextBatch(batch2).orElse(null).getId(), is(batch3.getId()));
     }
 
@@ -320,6 +323,24 @@ public class TickleRepoIT {
     @Test
     public void lookingUpRecordWhenPlaceholderValueIsEmpty() {
         assertThat(tickleRepo().lookupRecord(new Record()).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpRecordWhenPlaceholderValueIsIncomplete() {
+        final Record record = new Record().withLocalId("local1_1_!");
+        assertThat(tickleRepo().lookupRecord(record).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpRecordById() {
+        final Record record = new Record().withId(1);
+        assertThat(tickleRepo().lookupRecord(record).orElse(null).getLocalId(), is("local1_1_1"));
+    }
+
+    @Test
+    public void lookingUpRecordByDatasetAndLocalId() {
+        final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
+        assertThat(tickleRepo().lookupRecord(record).orElse(null).getId(), is(1));
     }
 
     @Test
