@@ -31,6 +31,13 @@ public class TickleRepo {
 
     public TickleRepo() {}
 
+    public Batch createBatch(Batch batch) {
+        if (batch.getType() == Batch.Type.TOTAL) {
+            LOGGER.info("{} records marked by batch {}", mark(batch), batch);
+        }
+        return batch;
+    }
+
     /**
      * Closes given batch by setting its time-of-completion.
      * <p>
