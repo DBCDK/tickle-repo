@@ -65,7 +65,6 @@ public class Record {
 
     private int batch;
     private int dataset;
-    private int agencyId;
     private String localId;
     private String trackingId;
 
@@ -106,15 +105,6 @@ public class Record {
 
     public Record withDataset(int dataset) {
         this.dataset = dataset;
-        return this;
-    }
-
-    public int getAgencyId() {
-        return agencyId;
-    }
-
-    public Record withAgencyId(int agencyId) {
-        this.agencyId = agencyId;
         return this;
     }
 
@@ -191,7 +181,6 @@ public class Record {
                 "id=" + id +
                 ", batch=" + batch +
                 ", dataset=" + dataset +
-                ", agencyId=" + agencyId +
                 ", localId='" + localId + '\'' +
                 ", trackingId='" + trackingId + '\'' +
                 ", status=" + status +

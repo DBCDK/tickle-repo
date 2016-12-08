@@ -6,7 +6,8 @@ See license text in LICENSE.txt
 CREATE TABLE dataset (
   id            SERIAL PRIMARY KEY,
   name          TEXT UNIQUE NOT NULL,
-  displayName   TEXT UNIQUE
+  displayName   TEXT UNIQUE,
+  agencyId      INTEGER NOT NULL
 );
 CREATE INDEX dataset_name_index ON dataset(name);
 
@@ -29,7 +30,6 @@ CREATE TABLE record (
   id                      SERIAL PRIMARY KEY,
   batch                   INTEGER REFERENCES batch(id) ON DELETE SET NULL,
   dataset                 INTEGER REFERENCES dataset(id) ON DELETE SET NULL,
-  agencyId                INTEGER NOT NULL,
   localId                 TEXT NOT NULL,
   trackingId              TEXT NOT NULL,
   status                  record_status NOT NULL,

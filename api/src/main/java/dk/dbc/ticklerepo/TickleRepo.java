@@ -6,6 +6,7 @@
 package dk.dbc.ticklerepo;
 
 import dk.dbc.ticklerepo.dto.Batch;
+import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.eclipse.persistence.queries.CursoredStream;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class TickleRepo {
         if (batch.getType() == Batch.Type.TOTAL) {
             LOGGER.info("{} records marked by batch {}", mark(batch), batch);
         }
+        entityManager.persist(batch);
+        entityManager.flush();
+        entityManager.refresh(batch);
         return batch;
     }
 
@@ -175,5 +179,35 @@ public class TickleRepo {
                 cursor.close();
             }
         }
+    }
+
+    /**
+     * checks if the given dataSet is persisted in the underlying database
+     * @param dataset to search for
+     * @return Optional.empty() if the dataSet is not persisted, otherwise the persisted dataSet.
+     */
+    public Optional<DataSet> lookupDataSet(DataSet dataset) {
+        Optional<DataSet> dataSetOptional = Optional.empty();
+        if (dataset.getId() > 0) {
+            dataSetOptional = Optional.ofNullable(entityManager.find(DataSet.class, dataset.getId()));
+        }
+        else if (dataset.getName() != null) {
+            final Query query = entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME)
+                    .setParameter("name", dataset.getName());
+            dataSetOptional = Optional.ofNullable((DataSet) query.getResultList().get(0));
+        }
+        return dataSetOptional;
+    }
+
+    /**
+     * Persists the dataSet given as input
+     * @param dataSet to persist
+     * @return persisted dataSet
+     */
+    public DataSet createDataSet(DataSet dataSet) {
+        entityManager.persist(dataSet);
+        entityManager.flush();
+        entityManager.refresh(dataSet);
+        return dataSet;
     }
 }

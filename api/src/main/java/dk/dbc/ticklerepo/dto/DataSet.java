@@ -10,12 +10,21 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
+@NamedQueries({
+        @NamedQuery(name = DataSet.GET_DATASET_BY_NAME, query = DataSet.GET_DATASET)
+})
 @Table(name = "dataset")
 public class DataSet {
+
+    public static final String GET_DATASET_BY_NAME = "DataSet.getDataSetByName";
+    public static final String GET_DATASET =
+            "SELECT dataset FROM DataSet dataSet WHERE dataset.name = :name";
 
     @Id
     @SequenceGenerator(
@@ -28,10 +37,9 @@ public class DataSet {
     @Column(updatable = false)
     private int id;
 
-    @Column(nullable = false)
     private String name;
-
     private String displayName;
+    private int agencyId;
 
     public int getId() {
         return id;
@@ -58,5 +66,24 @@ public class DataSet {
     public DataSet withDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
+    }
+
+    public int getAgencyId() {
+        return agencyId;
+    }
+
+    public DataSet withAgencyId(int agencyId) {
+        this.agencyId = agencyId;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "DataSet{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", agencyId=" + agencyId +
+                '}';
     }
 }

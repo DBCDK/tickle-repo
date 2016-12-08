@@ -46,10 +46,7 @@ public class Batch {
     @Column(updatable = false)
     private int id;
 
-    @Column(nullable = false)
     private int dataset;
-
-    @Column(nullable = false)
     private int batchKey;
 
     @Convert(converter = BatchTypeConverter.class)
