@@ -60,6 +60,12 @@ public class TickleRepo {
         return new ResultSet<>(query);
     }
 
+    private int mark(Batch batch) {
+        return entityManager.createNamedQuery(Record.MARK_QUERY_NAME)
+                .setParameter("dataset", batch.getDataset())
+                .executeUpdate();
+    }
+
     private int sweep(Batch batch) {
         return entityManager.createNamedQuery(Record.SWEEP_QUERY_NAME)
                 .setParameter("batch", batch.getId())
