@@ -1,5 +1,5 @@
-INSERT INTO dataset(name, agencyId) VALUES ('dataset1', '123456');
-INSERT INTO dataset(name, agencyId) VALUES ('dataset2', '123456');
+INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset1', '123456', 'displayname1');
+INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset2', '123457', 'displayname2');
 
 INSERT INTO batch(dataset,batchkey,type) VALUES (1, 1000001, 'TOTAL');
 INSERT INTO batch(dataset,batchkey,type) VALUES (2, 1000002, 'TOTAL');

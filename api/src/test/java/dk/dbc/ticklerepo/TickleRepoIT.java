@@ -27,11 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
@@ -281,65 +280,42 @@ public class TickleRepoIT {
     }
 
     @Test
-    public void gettingNextBatchWhenCompleted() {
-        final Batch batch2 = entityManager.find(Batch.class, 2);
-        final Batch batch3 = entityManager.find(Batch.class, 3);
-
-        transaction_scoped(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
-
-        assertThat(tickleRepo().getNextBatch(batch2).orElse(null).getId(), is(batch3.getId()));
+    public void lookupDataSet_notPersisted_returnsOptionalEmpty() {
+        Optional<DataSet> dataSetOptional = tickleRepo().lookupDataSet(new DataSet().withId(42));
+        assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
     }
 
     @Test
-    public void gettingNextBatchWhenNotCompleted() {
-        final Batch batch2 = entityManager.find(Batch.class, 2);
-        assertThat(tickleRepo().getNextBatch(batch2).isPresent(), is(false));
+    public void lookupDataSet_findsPersistedThroughId_returnsPersistedDataSet() {
+        DataSet dataSet = new DataSet().withId(2);
+        Optional<DataSet> dataSetOptional = tickleRepo().lookupDataSet(dataSet);
+        assertThat(dataSetOptional.isPresent(), is (true));
+        DataSet persisted = dataSetOptional.get();
+        assertThat("dataSet ID", persisted.getId(), is(2));
+        assertThat("dataSet name", persisted.getName(), is("dataset2"));
+        assertThat("dataSet agencyId", persisted.getAgencyId(), is(123457));
+        assertThat("dataSet displayName",persisted.getDisplayName(), is("displayname2"));
     }
 
     @Test
-    public void gettingNextBatchWhenNoneExist() {
-        final Batch batch3 = entityManager.find(Batch.class, 3);
-        assertThat(tickleRepo().getNextBatch(batch3).isPresent(), is(false));
+    public void lookupDataSet_findsPersistedThroughName_returnsPersistedDataSet() {
+        DataSet dataSet = new DataSet().withName("dataset1");
+        Optional<DataSet> dataSetOptional = tickleRepo().lookupDataSet(dataSet);
+        assertThat(dataSetOptional.isPresent(), is (true));
+        DataSet persisted = dataSetOptional.get();
+        assertThat("dataSet ID", persisted.getId(), is(1));
+        assertThat("dataSet name", persisted.getName(), is("dataset1"));
+        assertThat("dataSet agencyId", persisted.getAgencyId(), is(123456));
+        assertThat("dataSet displayName",persisted.getDisplayName(), is("displayname1"));
     }
 
     @Test
-    public void lookingUpBatchWhenPlaceholderValueIsEmpty() {
-        assertThat(tickleRepo().lookupBatch(new Batch()).isPresent(), is(false));
-    }
-
-    @Test
-    public void lookingUpBatchById() {
-        final Batch batch = new Batch().withId(1);
-        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getBatchKey(), is(1000001));
-    }
-
-    @Test
-    public void lookingUpBatchByKey() {
-        final Batch batch = new Batch().withBatchKey(1000001);
-        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getId(), is(1));
-    }
-
-    @Test
-    public void lookingUpRecordWhenPlaceholderValueIsEmpty() {
-        assertThat(tickleRepo().lookupRecord(new Record()).isPresent(), is(false));
-    }
-
-    @Test
-    public void lookingUpRecordWhenPlaceholderValueIsIncomplete() {
-        final Record record = new Record().withLocalId("local1_1_!");
-        assertThat(tickleRepo().lookupRecord(record).isPresent(), is(false));
-    }
-
-    @Test
-    public void lookingUpRecordById() {
-        final Record record = new Record().withId(1);
-        assertThat(tickleRepo().lookupRecord(record).orElse(null).getLocalId(), is("local1_1_1"));
-    }
-
-    @Test
-    public void lookingUpRecordByDatasetAndLocalId() {
-        final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
-        assertThat(tickleRepo().lookupRecord(record).orElse(null).getId(), is(1));
+    public void createDataSet_returns() {
+        final DataSet persisted = transaction_scoped(() -> tickleRepo().createDataSet(new DataSet().withName("dataset3").withAgencyId(123458)));
+        assertThat("dataSet ID", persisted.getId(), is(3));
+        assertThat("dataSet name", persisted.getName(), is("dataset3"));
+        assertThat("dataSet agencyId", persisted.getAgencyId(), is(123458));
+        assertThat("dataSet displayName", persisted.getDisplayName(), is(nullValue()));
     }
 
     private TickleRepo tickleRepo() {
