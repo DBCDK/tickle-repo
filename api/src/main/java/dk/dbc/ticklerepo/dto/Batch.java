@@ -102,4 +102,16 @@ public class Batch {
         this.timeOfCompletion = timeOfCompletion;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "Batch{" +
+                "id=" + id +
+                ", dataset=" + dataset +
+                ", batchKey=" + batchKey +
+                ", type=" + type +
+                ", timeOfCreation=" + timeOfCreation +
+                ", timeOfCompletion=" + timeOfCompletion +
+                '}';
+    }
 }

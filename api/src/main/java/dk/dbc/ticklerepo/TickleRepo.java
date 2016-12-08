@@ -15,6 +15,8 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Iterator;
 
 /**
@@ -27,8 +29,24 @@ public class TickleRepo {
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
 
-    public TickleRepo() {
-        LOGGER.debug("Entity manager injected as {}", entityManager);
+    public TickleRepo() {}
+
+    /**
+     * Closes given batch by setting its time-of-completion.
+     * <p>
+     * Batches of type TOTAL will also have their records swept,
+     * meaning any record remaining in the dataset with a status of RESET
+     * will have its status set to DELETED and its batch ID updated
+     * to that of the given batch.
+     * </p>
+     * @param batch batch to close
+     */
+    public void closeBatch(Batch batch) {
+        batch = entityManager.merge(batch);
+        if (batch.getType() == Batch.Type.TOTAL) {
+            LOGGER.info("{} records swept for batch {}", sweep(batch), batch);
+        }
+        batch.withTimeOfCompletion(new Timestamp(new Date().getTime()));
     }
 
     /**
@@ -40,6 +58,13 @@ public class TickleRepo {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_BATCH_QUERY_NAME)
                 .setParameter("batch", batch.getId());
         return new ResultSet<>(query);
+    }
+
+    private int sweep(Batch batch) {
+        return entityManager.createNamedQuery(Record.SWEEP_QUERY_NAME)
+                .setParameter("batch", batch.getId())
+                .setParameter("dataset", batch.getDataset())
+                .executeUpdate();
     }
 
     /**
