@@ -2,7 +2,7 @@ INSERT INTO dataset(name) VALUES ('dataset1');
 INSERT INTO dataset(name) VALUES ('dataset2');
 
 INSERT INTO batch(dataset,batchkey,type) VALUES (1, 1000001, 'TOTAL');
-INSERT INTO batch(dataset,batchkey,type) VALUES (1, 1000002, 'TOTAL');
+INSERT INTO batch(dataset,batchkey,type) VALUES (2, 1000002, 'TOTAL');
 INSERT INTO batch(dataset,batchkey,type) VALUES (2, 1000003, 'TOTAL');
 
 INSERT INTO record(batch,dataset,agencyid,localid,trackingid,content,checksum,status) VALUES (1, 1, 123456, 'local1_1_1', 't1_1_1', 'data1_1_1', 'chksum1_1_1', 'ACTIVE');

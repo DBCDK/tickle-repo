@@ -18,6 +18,7 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * This class contains the tickle repository API
@@ -54,6 +55,22 @@ public class TickleRepo {
             LOGGER.info("{} records swept for batch {}", sweep(batch), batch);
         }
         batch.withTimeOfCompletion(new Timestamp(new Date().getTime()));
+    }
+
+    /**
+     * Returns next batch compared to last batch seen if it is completed
+     * @param lastSeenBatch last seen batch for a dataset
+     * @return next available batch
+     */
+    public Optional<Batch> getNextBatch(Batch lastSeenBatch) {
+        return entityManager.createNamedQuery(Batch.GET_NEXT_BATCH_QUERY_NAME, Batch.class)
+                .setParameter("lastSeenId", lastSeenBatch.getId())
+                .setParameter("dataset", lastSeenBatch.getDataset())
+                .setMaxResults(1)
+                .getResultList()
+                .stream()
+                .filter(batch -> batch.getTimeOfCompletion() != null)
+                .findFirst();
     }
 
     /**

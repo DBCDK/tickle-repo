@@ -11,13 +11,19 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "batch")
+@NamedQueries({
+    @NamedQuery(name = Batch.GET_NEXT_BATCH_QUERY_NAME, query = Batch.GET_NEXT_BATCH_QUERY)
+})
 public class Batch {
+    public static final String GET_NEXT_BATCH_QUERY =
+            "SELECT batch FROM Batch batch WHERE batch.id > :lastSeenId AND batch.dataset = :dataset ORDER BY batch.id ASC";
+    public static final String GET_NEXT_BATCH_QUERY_NAME = "Batch.getNextBatch";
 
     public enum Type {
         TOTAL,

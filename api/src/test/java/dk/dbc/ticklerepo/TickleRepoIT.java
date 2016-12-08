@@ -26,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -196,6 +198,28 @@ public class TickleRepoIT {
 
         entityManager.refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    @Test
+    public void gettingNextBatchWhenCompleted() {
+        final Batch batch2 = entityManager.find(Batch.class, 2);
+        final Batch batch3 = entityManager.find(Batch.class, 3);
+
+        transaction_scoped(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
+
+        assertThat(tickleRepo().getNextBatch(batch2).orElse(null).getId(), is(batch3.getId()));
+    }
+
+    @Test
+    public void gettingNextBatchWhenNotCompleted() {
+        final Batch batch2 = entityManager.find(Batch.class, 2);
+        assertThat(tickleRepo().getNextBatch(batch2).isPresent(), is(false));
+    }
+
+    @Test
+    public void gettingNextBatchWhenNoneExist() {
+        final Batch batch3 = entityManager.find(Batch.class, 3);
+        assertThat(tickleRepo().getNextBatch(batch3).isPresent(), is(false));
     }
 
     private TickleRepo tickleRepo() {
