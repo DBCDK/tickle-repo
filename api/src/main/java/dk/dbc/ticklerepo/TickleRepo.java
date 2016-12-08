@@ -84,6 +84,28 @@ public class TickleRepo {
         return new ResultSet<>(query);
     }
 
+    /**
+     * Tries to lookup record in repository either by record ID or by (dataset,localId) combination
+     * @param value values placeholder
+     * @return managed Record object if found
+     */
+    public Optional<Record> lookupRecord(Record value) {
+        if (value != null) {
+            if (value.getId() > 0) {
+                return Optional.ofNullable(entityManager.find(Record.class, value.getId()));
+            } else if (value.getLocalId() != null && value.getDataset() > 0) {
+                return entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
+                        .setParameter("dataset", value.getDataset())
+                        .setParameter("localId", value.getLocalId())
+                        .setMaxResults(1)
+                        .getResultList()
+                        .stream()
+                        .findFirst();
+            }
+        }
+        return Optional.empty();
+    }
+
     private int mark(Batch batch) {
         return entityManager.createNamedQuery(Record.MARK_QUERY_NAME)
                 .setParameter("dataset", batch.getDataset())

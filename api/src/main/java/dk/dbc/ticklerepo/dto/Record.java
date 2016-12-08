@@ -22,18 +22,25 @@ import java.util.Date;
 
 @Entity
 @NamedQueries({
+    @NamedQuery(name = Record.GET_RECORD_BY_LOCALID_QUERY_NAME, query = Record.GET_RECORD_BY_LOCALID_QUERY),
     @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY),
     @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
     @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY)
 })
 public class Record {
+    public static final String GET_RECORD_BY_LOCALID_QUERY =
+            "SELECT record FROM Record record WHERE record.dataset = :dataset AND record.localId = :localId";
+    public static final String GET_RECORD_BY_LOCALID_QUERY_NAME = "Record.getRecordByLocalId";
+
     public static final String GET_RECORDS_IN_BATCH_QUERY =
             "SELECT record FROM Record record WHERE record.batch = :batch ORDER BY record.id ASC";
     public static final String GET_RECORDS_IN_BATCH_QUERY_NAME = "Record.getRecordsInBatch";
+
     public static final String MARK_QUERY =
             "UPDATE Record record SET record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET " +
                     "WHERE record.dataset = :dataset AND record.status = dk.dbc.ticklerepo.dto.Record.Status.ACTIVE";
     public static final String MARK_QUERY_NAME = "Record.mark";
+
     public static final String SWEEP_QUERY =
             "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED " +
                     "WHERE record.dataset = :dataset AND record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET";

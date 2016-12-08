@@ -222,6 +222,29 @@ public class TickleRepoIT {
         assertThat(tickleRepo().getNextBatch(batch3).isPresent(), is(false));
     }
 
+    @Test
+    public void lookingUpRecordWhenPlaceholderValueIsEmpty() {
+        assertThat(tickleRepo().lookupRecord(new Record()).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpRecordWhenPlaceholderValueIsIncomplete() {
+        final Record record = new Record().withLocalId("local1_1_!");
+        assertThat(tickleRepo().lookupRecord(record).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpRecordById() {
+        final Record record = new Record().withId(1);
+        assertThat(tickleRepo().lookupRecord(record).orElse(null).getLocalId(), is("local1_1_1"));
+    }
+
+    @Test
+    public void lookingUpRecordByDatasetAndLocalId() {
+        final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
+        assertThat(tickleRepo().lookupRecord(record).orElse(null).getId(), is(1));
+    }
+
     private TickleRepo tickleRepo() {
         final TickleRepo tickleRepo = new TickleRepo();
         tickleRepo.entityManager = entityManager;
