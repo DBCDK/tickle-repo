@@ -85,6 +85,27 @@ public class TickleRepo {
     }
 
     /**
+     * Tries to lookup batch in repository either by batch ID or by batch key
+     * @param value values placeholder
+     * @return managed Batch object if found
+     */
+    public Optional<Batch> lookupBatch(Batch value) {
+        if (value != null) {
+            if (value.getId() > 0) {
+                return Optional.ofNullable(entityManager.find(Batch.class, value.getId()));
+            } else if (value.getBatchKey() > 0) {
+                return entityManager.createNamedQuery(Batch.GET_BATCH_BY_KEY_QUERY_NAME, Batch.class)
+                        .setParameter("key", value.getBatchKey())
+                        .setMaxResults(1)
+                        .getResultList()
+                        .stream()
+                        .findFirst();
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Tries to lookup record in repository either by record ID or by (dataset,localId) combination
      * @param value values placeholder
      * @return managed Record object if found

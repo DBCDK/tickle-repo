@@ -223,6 +223,23 @@ public class TickleRepoIT {
     }
 
     @Test
+    public void lookingUpBatchWhenPlaceholderValueIsEmpty() {
+        assertThat(tickleRepo().lookupBatch(new Batch()).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpBatchById() {
+        final Batch batch = new Batch().withId(1);
+        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getBatchKey(), is(1000001));
+    }
+
+    @Test
+    public void lookingUpBatchByKey() {
+        final Batch batch = new Batch().withBatchKey(1000001);
+        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getId(), is(1));
+    }
+
+    @Test
     public void lookingUpRecordWhenPlaceholderValueIsEmpty() {
         assertThat(tickleRepo().lookupRecord(new Record()).isPresent(), is(false));
     }
