@@ -14,7 +14,7 @@ INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VAL
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_7', 't1_1_7', 'data1_1_7', 'chksum1_1_7', 'ACTIVE');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_8', 't1_1_8', 'data1_1_8', 'chksum1_1_8', 'ACTIVE');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_9', 't1_1_9', 'data1_1_9', 'chksum1_1_9', 'ACTIVE');
-INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_10', 't1_1_10', 'data1_1_10', 'chksum1_1_10', 'ACTIVE');
+INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_10', 't1_1_10', 'data1_1_10', 'chksum1_1_10', 'DELETED');
 
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (2, 2, 'local2_2_1', 't2_2_1', 'data2_2_1', 'chksum2_2_1', 'RESET');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (2, 2, 'local2_2_2', 't2_2_2', 'data2_2_2', 'chksum2_2_2', 'DELETED');

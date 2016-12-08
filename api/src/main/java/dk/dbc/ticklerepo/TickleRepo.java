@@ -33,6 +33,16 @@ public class TickleRepo {
 
     public TickleRepo() {}
 
+    /**
+     * Persists given batch.
+     * <p>
+     * Batches of type TOTAL will also have their records marked,
+     * meaning any record remaining in the dataset with a status of ACTIVE
+     * will have its status set to RESET.
+     * </p>
+     * @param batch batch to create
+     * @return managed Batch object
+     */
     public Batch createBatch(Batch batch) {
         if (batch.getType() == Batch.Type.TOTAL) {
             LOGGER.info("{} records marked by batch {}", mark(batch), batch);
