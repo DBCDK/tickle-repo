@@ -27,6 +27,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -248,7 +250,7 @@ public class TickleRepoIT {
 
     @Test
     public void closingIncrementalBatchSetsTimeOfCompletion() {
-       final LinkedList<Record> expectedRecords = new LinkedList<>();
+        final LinkedList<Record> expectedRecords = new LinkedList<>();
         expectedRecords.add(new Record().withLocalId("local3_2_1").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_2").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_3").withStatus(Record.Status.ACTIVE));
@@ -277,6 +279,47 @@ public class TickleRepoIT {
 
         entityManager.refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
+    }
+    @Test
+    public void gettingNextBatchWhenCompleted() {
+        final Batch batch2 = entityManager.find(Batch.class, 2);
+        final Batch batch3 = entityManager.find(Batch.class, 3);
+        transaction_scoped(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
+        assertThat(tickleRepo().getNextBatch(batch2).orElse(null).getId(), is(batch3.getId()));
+    }
+
+    @Test
+    public void gettingNextBatchWhenNotCompleted() {
+        final Batch batch2 = entityManager.find(Batch.class, 2);
+        assertThat(tickleRepo().getNextBatch(batch2).isPresent(), is(false));
+    }
+
+    @Test
+    public void gettingNextBatchWhenNoneExist() {
+        final Batch batch3 = entityManager.find(Batch.class, 3);
+        assertThat(tickleRepo().getNextBatch(batch3).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpBatchWhenPlaceholderValueIsEmpty() {
+        assertThat(tickleRepo().lookupBatch(new Batch()).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpBatchById() {
+        final Batch batch = new Batch().withId(1);
+        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getBatchKey(), is(1000001));
+    }
+
+    @Test
+    public void lookingUpBatchByKey() {
+        final Batch batch = new Batch().withBatchKey(1000001);
+        assertThat(tickleRepo().lookupBatch(batch).orElse(null).getId(), is(1));
+    }
+
+    @Test
+    public void lookingUpRecordWhenPlaceholderValueIsEmpty() {
+        assertThat(tickleRepo().lookupRecord(new Record()).isPresent(), is(false));
     }
 
     @Test
