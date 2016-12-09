@@ -204,7 +204,9 @@ public class TickleRepo {
         else if (dataset.getName() != null) {
             final Query query = entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME)
                     .setParameter("name", dataset.getName());
-            dataSetOptional = Optional.ofNullable((DataSet) query.getResultList().get(0));
+            if(query.getResultList().size() == 1) {
+                dataSetOptional = Optional.ofNullable((DataSet) query.getResultList().get(0));
+            }
         }
         return dataSetOptional;
     }

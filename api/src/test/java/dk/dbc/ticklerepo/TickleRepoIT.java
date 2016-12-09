@@ -344,8 +344,14 @@ public class TickleRepoIT {
     }
 
     @Test
-    public void lookupDataSet_notPersisted_returnsOptionalEmpty() {
+    public void lookupDataSetById_notPersisted_returnsOptionalEmpty() {
         Optional<DataSet> dataSetOptional = tickleRepo().lookupDataSet(new DataSet().withId(42));
+        assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
+    }
+
+    @Test
+    public void lookupDataSetByName_notPersisted_returnsOptionalEmpty() {
+        Optional<DataSet> dataSetOptional = tickleRepo().lookupDataSet(new DataSet().withName("dataset3"));
         assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
     }
 
