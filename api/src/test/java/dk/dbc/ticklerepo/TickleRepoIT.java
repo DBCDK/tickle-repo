@@ -19,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.RollbackException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -42,6 +43,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class TickleRepoIT {
     protected static final PGSimpleDataSource datasource;
@@ -386,6 +388,26 @@ public class TickleRepoIT {
         assertThat("dataSet name", persisted.getName(), is("dataset3"));
         assertThat("dataSet agencyId", persisted.getAgencyId(), is(123458));
         assertThat("dataSet displayName", persisted.getDisplayName(), is(nullValue()));
+    }
+
+    @Test
+    public void localIdMustBeUniqueForDataset() {
+        try {
+            transaction_scoped(() -> {
+                final Record record = new Record()
+                        .withBatch(1)
+                        .withDataset(1)
+                        .withLocalId("local1_1_1")
+                        .withTrackingId("tid")
+                        .withStatus(Record.Status.ACTIVE)
+                        .withContent("content".getBytes())
+                        .withChecksum("checksum");
+                entityManager.persist(record);
+            });
+            fail("No exception thrown");
+        } catch (RollbackException e) {
+            assertThat(e.getMessage().contains("record_unique_dataset_localid_constraint"), is(true));
+        }
     }
 
     private TickleRepo tickleRepo() {

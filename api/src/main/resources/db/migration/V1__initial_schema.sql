@@ -36,9 +36,9 @@ CREATE TABLE record (
   timeOfCreation          TIMESTAMP DEFAULT clock_timestamp(),
   timeOfLastModification  TIMESTAMP,
   content                 BYTEA NOT NULL,
-  checksum                TEXT NOT NULL
+  checksum                TEXT NOT NULL,
+  CONSTRAINT record_unique_dataset_localId_constraint UNIQUE (dataset, localId)
 );
 CREATE INDEX record_batch_index ON record(batch);
 CREATE INDEX record_dataset_index ON record(dataset);
-CREATE INDEX record_localId_index ON record(localId);
-CREATE INDEX record_status_index ON record(status);
+CREATE INDEX record_dataset_status_index ON record(dataset, status);
