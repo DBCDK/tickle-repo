@@ -150,7 +150,7 @@ public class TickleRepoIT {
         assertThat("batch type", batchCreated.getType(), is(batch.getType()));
         assertThat("batch dateset", batchCreated.getDataset(), is(batch.getDataset()));
         assertThat("batch time of creation", batchCreated.getTimeOfCreation(), is(notNullValue()));
-        assertThat("batch dateset", batchCreated.getTimeOfCompletion(), is(nullValue()));
+        assertThat("batch time of completion", batchCreated.getTimeOfCompletion(), is(nullValue()));
 
         final LinkedList<Record> expectedRecords = new LinkedList<>();
         expectedRecords.add(new Record().withLocalId("local1_1_1").withStatus(Record.Status.RESET));
@@ -189,7 +189,7 @@ public class TickleRepoIT {
         assertThat("batch type", batchCreated.getType(), is(batch.getType()));
         assertThat("batch dateset", batchCreated.getDataset(), is(batch.getDataset()));
         assertThat("batch time of creation", batchCreated.getTimeOfCreation(), is(notNullValue()));
-        assertThat("batch dateset", batchCreated.getTimeOfCompletion(), is(nullValue()));
+        assertThat("batch time of completion", batchCreated.getTimeOfCompletion(), is(nullValue()));
 
         final LinkedList<Record> expectedRecords = new LinkedList<>();
         expectedRecords.add(new Record().withLocalId("local1_1_1").withStatus(Record.Status.ACTIVE));
@@ -408,6 +408,39 @@ public class TickleRepoIT {
         } catch (RollbackException e) {
             assertThat(e.getMessage().contains("record_unique_dataset_localid_constraint"), is(true));
         }
+    }
+
+    @Test
+    public void abortingBatchUndoMarks() {
+        final Batch batch = entityManager.find(Batch.class, 2);
+
+        final TickleRepo tickleRepo = tickleRepo();
+        transaction_scoped(() -> tickleRepo.abortBatch(batch));
+
+        entityManager.refresh(batch);
+        assertThat("batch time of completion", batch.getTimeOfCompletion(), is(notNullValue()));
+
+        final LinkedList<Record> expectedRecords = new LinkedList<>();
+        expectedRecords.add(new Record().withLocalId("local2_2_1").withStatus(Record.Status.ACTIVE));
+        expectedRecords.add(new Record().withLocalId("local2_2_2").withStatus(Record.Status.DELETED));
+        expectedRecords.add(new Record().withLocalId("local2_2_3").withStatus(Record.Status.ACTIVE));
+        expectedRecords.add(new Record().withLocalId("local2_2_4").withStatus(Record.Status.DELETED));
+        expectedRecords.add(new Record().withLocalId("local2_2_5").withStatus(Record.Status.ACTIVE));
+        expectedRecords.add(new Record().withLocalId("local2_2_6").withStatus(Record.Status.DELETED));
+        expectedRecords.add(new Record().withLocalId("local2_2_7").withStatus(Record.Status.ACTIVE));
+        expectedRecords.add(new Record().withLocalId("local2_2_8").withStatus(Record.Status.DELETED));
+        expectedRecords.add(new Record().withLocalId("local2_2_9").withStatus(Record.Status.ACTIVE));
+        expectedRecords.add(new Record().withLocalId("local2_2_10").withStatus(Record.Status.DELETED));
+
+        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+            for (Record record : rs) {
+                final Record expectedRecord = expectedRecords.remove();
+                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+            }
+        }
+        assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+
     }
 
     private TickleRepo tickleRepo() {

@@ -72,6 +72,22 @@ public class TickleRepo {
     }
 
     /**
+     * Aborts given batch by setting its time-of-completion.
+     * <p>
+     * Batches of type TOTAL will also have their remaining sweep markers undone,
+     * meaning any record remaining in the dataset with a status of RESET
+     * will have its status set back to ACTIVE and its batch ID left untouched.
+     * </p>
+     * @param batch batch to abort
+     */
+    public void abortBatch(Batch batch) {
+        if (batch.getType() == Batch.Type.TOTAL) {
+            LOGGER.info("{} marks undone for batch {}", undoMark(batch), batch);
+        }
+        closeBatch(batch);
+    }
+
+    /**
      * Returns next batch compared to last batch seen if it is completed
      * @param lastSeenBatch last seen batch for a dataset
      * @return next available batch
@@ -150,6 +166,12 @@ public class TickleRepo {
     private int sweep(Batch batch) {
         return entityManager.createNamedQuery(Record.SWEEP_QUERY_NAME)
                 .setParameter("batch", batch.getId())
+                .setParameter("dataset", batch.getDataset())
+                .executeUpdate();
+    }
+
+    private int undoMark(Batch batch) {
+        return entityManager.createNamedQuery(Record.UNDO_MARK_QUERY_NAME)
                 .setParameter("dataset", batch.getDataset())
                 .executeUpdate();
     }
