@@ -244,4 +244,8 @@ public class TickleRepo {
         entityManager.refresh(dataSet);
         return dataSet;
     }
+
+    public EntityManager getEntityManager() {
+        return entityManager;
+    }
 }
