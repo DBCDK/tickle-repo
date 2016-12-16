@@ -33,6 +33,10 @@ public class TickleRepo {
 
     public TickleRepo() {}
 
+    public TickleRepo(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
     /**
      * Persists given batch.
      * <p>
