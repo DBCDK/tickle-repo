@@ -223,18 +223,19 @@ public class TickleRepo {
      * @return Optional.empty() if the dataSet is not persisted, otherwise the persisted dataSet.
      */
     public Optional<DataSet> lookupDataSet(DataSet dataset) {
-        Optional<DataSet> dataSetOptional = Optional.empty();
-        if (dataset.getId() > 0) {
-            dataSetOptional = Optional.ofNullable(entityManager.find(DataSet.class, dataset.getId()));
-        }
-        else if (dataset.getName() != null) {
-            final Query query = entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME)
-                    .setParameter("name", dataset.getName());
-            if(query.getResultList().size() == 1) {
-                dataSetOptional = Optional.ofNullable((DataSet) query.getResultList().get(0));
+        if (dataset != null) {
+            if (dataset.getId() > 0) {
+                return Optional.ofNullable(entityManager.find(DataSet.class, dataset.getId()));
+            } else if (dataset.getName() != null) {
+               return entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME, DataSet.class)
+                        .setParameter("name", dataset.getName())
+                        .setMaxResults(1)
+                        .getResultList()
+                        .stream()
+                        .findFirst();
             }
         }
-        return dataSetOptional;
+        return Optional.empty();
     }
 
     /**
