@@ -97,7 +97,12 @@ public class TickleRepo {
      * @return next available batch
      */
     public Optional<Batch> getNextBatch(Batch lastSeenBatch) {
+        /* The eclipselink.refresh hint below breaks portability, the
+           alternative is to do a refresh on each entity returned, but
+           this entails suboptimal performance.
+           Note: javax.persistence.cache.retrieveMode hint does not seem to work currently */
         return entityManager.createNamedQuery(Batch.GET_NEXT_BATCH_QUERY_NAME, Batch.class)
+                .setHint("eclipselink.refresh", true)
                 .setParameter("lastSeenId", lastSeenBatch.getId())
                 .setParameter("dataset", lastSeenBatch.getDataset())
                 .setMaxResults(1)
