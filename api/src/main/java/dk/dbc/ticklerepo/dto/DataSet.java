@@ -13,17 +13,15 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = DataSet.GET_DATASET_BY_NAME, query = DataSet.GET_DATASET)
+        @NamedQuery(name = DataSet.GET_DATASET_BY_NAME_QUERY_NAME, query = DataSet.GET_DATASET_BY_NAME_QUERY)
 })
-@Table(name = "dataset")
 public class DataSet {
 
-    public static final String GET_DATASET_BY_NAME = "DataSet.getDataSetByName";
-    public static final String GET_DATASET =
+    public static final String GET_DATASET_BY_NAME_QUERY_NAME = "DataSet.getDataSetByName";
+    public static final String GET_DATASET_BY_NAME_QUERY =
             "SELECT dataset FROM DataSet dataSet WHERE dataset.name = :name";
 
     @Id

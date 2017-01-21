@@ -232,7 +232,7 @@ public class TickleRepo {
             if (dataset.getId() > 0) {
                 return Optional.ofNullable(entityManager.find(DataSet.class, dataset.getId()));
             } else if (dataset.getName() != null) {
-               return entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME, DataSet.class)
+               return entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME_QUERY_NAME, DataSet.class)
                         .setParameter("name", dataset.getName())
                         .setMaxResults(1)
                         .getResultList()
