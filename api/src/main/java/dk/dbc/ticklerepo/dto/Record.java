@@ -13,8 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.SequenceGenerator;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -195,8 +195,8 @@ public class Record {
                 '}';
     }
 
-    @PostPersist
-    @PostUpdate
+    @PrePersist
+    @PreUpdate
     void onDatabaseCommit() {
         this.timeOfLastModification = new Timestamp(new Date().getTime());
     }

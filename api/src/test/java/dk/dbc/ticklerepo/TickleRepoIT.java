@@ -40,6 +40,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -441,6 +442,29 @@ public class TickleRepoIT {
         }
         assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
 
+    }
+
+    @Test
+    public void timeOfLastModificationSetOnRecordPersistAndRecordUpdate() {
+        final Record record = new Record()
+                .withBatch(3)
+                .withDataset(1)
+                .withTrackingId("trackingId")
+                .withStatus(Record.Status.ACTIVE)
+                .withLocalId("localId")
+                .withContent("content".getBytes())
+                .withChecksum("checksum");
+
+        final Timestamp timestamp = transaction_scoped(() -> {
+            entityManager.persist(record);
+            assertThat("timeOfLastModification after persist", record.getTimeOfLastModification(), is(notNullValue()));
+            return record.getTimeOfLastModification();
+        });
+
+        transaction_scoped(() -> record.withStatus(Record.Status.DELETED));
+
+        assertThat("timeOfLastModification after update", record.getTimeOfLastModification(), is(notNullValue()));
+        assertThat("timeOfLastModification after update", record.getTimeOfLastModification(), is(not(timestamp)));
     }
 
     private TickleRepo tickleRepo() {
