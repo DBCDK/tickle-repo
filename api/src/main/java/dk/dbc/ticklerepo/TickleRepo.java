@@ -119,6 +119,7 @@ public class TickleRepo {
      */
     public ResultSet<Record> getRecordsInBatch(Batch batch) {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_BATCH_QUERY_NAME)
+                .setHint("eclipselink.refresh", true)
                 .setParameter("batch", batch.getId());
         return new ResultSet<>(query);
     }
