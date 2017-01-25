@@ -177,6 +177,7 @@ public class TickleRepo {
         return entityManager.createNamedQuery(Record.SWEEP_QUERY_NAME)
                 .setParameter("batch", batch.getId())
                 .setParameter("dataset", batch.getDataset())
+                .setParameter("now", new Date())
                 .executeUpdate();
     }
 

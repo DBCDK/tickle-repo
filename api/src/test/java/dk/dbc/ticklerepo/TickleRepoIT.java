@@ -247,6 +247,9 @@ public class TickleRepoIT {
         }
         assertThat("number of records in batch is 15", expectedRecords.isEmpty(), is(true));
 
+        assertThat("timeOfLastModification set on deleted records", tickleRepo.lookupRecord(new Record().withId(11)).orElse(null).getTimeOfLastModification(),
+                is(notNullValue()));
+
         entityManager.refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
     }

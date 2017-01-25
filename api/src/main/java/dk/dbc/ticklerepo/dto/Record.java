@@ -48,7 +48,7 @@ public class Record {
     public static final String UNDO_MARK_QUERY_NAME = "Record.undoMark";
 
     public static final String SWEEP_QUERY =
-            "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED " +
+            "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED, record.timeOfLastModification = :now " +
                     "WHERE record.dataset = :dataset AND record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET";
     public static final String SWEEP_QUERY_NAME = "Record.sweep";
 
