@@ -36,6 +36,7 @@ public class TickleRepoDatabaseMigrator {
         flyway.setTable("schema_version");
         flyway.setBaselineOnMigrate(true);
         flyway.setDataSource(dataSource);
+        flyway.setLocations("classpath:dk.dbc.ticklerepo.db.migration");
         for (MigrationInfo info : flyway.info().all()) {
             LOGGER.info("database migration {} : {} from file '{}'",
                     info.getVersion(), info.getDescription(), info.getScript());
