@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -47,13 +49,14 @@ public class TickleRepo {
      * @param batch batch to create
      * @return managed Batch object
      */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Batch createBatch(Batch batch) {
-        if (batch.getType() == Batch.Type.TOTAL) {
-            LOGGER.info("{} records marked by batch {}", mark(batch), batch);
-        }
         entityManager.persist(batch);
         entityManager.flush();
         entityManager.refresh(batch);
+        if (batch.getType() == Batch.Type.TOTAL) {
+            LOGGER.info("{} records marked by batch {}", mark(batch), batch);
+        }
         return batch;
     }
 
@@ -250,6 +253,7 @@ public class TickleRepo {
      * @param dataSet to persist
      * @return persisted dataSet
      */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public DataSet createDataSet(DataSet dataSet) {
         entityManager.persist(dataSet);
         entityManager.flush();
