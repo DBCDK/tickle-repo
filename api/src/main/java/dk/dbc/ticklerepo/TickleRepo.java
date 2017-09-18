@@ -130,7 +130,7 @@ public class TickleRepo {
 
    /**
      * Returns iterator for all records belonging to given data set
-     * @param dataset data set
+     * @param dataSet data set
      * @return batch iterator as ResultSet abstraction
      */
     public ResultSet<Record> getRecordsInDataSet(DataSet dataSet) {
