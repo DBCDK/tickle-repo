@@ -1,5 +1,5 @@
 /*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
  * See license text in LICENSE.txt
  */
 
