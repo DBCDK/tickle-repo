@@ -426,6 +426,35 @@ public class TickleRepoIT extends JpaIntegrationTest {
         assertThat("timeOfLastModification after update", record.getTimeOfLastModification(), is(not(timestamp)));
     }
 
+    @Test
+    public void getRecordsInDataSet() {
+        final DataSet dataSet = new DataSet()
+                .withId(1);
+
+        int recordsInDataSet = 0;
+        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
+            for (Record record : rs) {
+                recordsInDataSet++;
+                assertThat("record ID", record.getId(), is(recordsInDataSet));
+            }
+        }
+        assertThat("number of records in data set", recordsInDataSet, is(10));
+    }
+
+    @Test
+    public void getRecordsInDataSet_nonExistingDataSet() {
+        final DataSet dataSet = new DataSet()
+                .withId(42);
+
+        int recordsInDataSet = 0;
+        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
+            for (Record record : rs) {
+                recordsInDataSet++;
+            }
+        }
+        assertThat(recordsInDataSet, is(0));
+    }
+
     private TickleRepo tickleRepo() {
         final TickleRepo tickleRepo = new TickleRepo();
         tickleRepo.entityManager = env().getEntityManager();

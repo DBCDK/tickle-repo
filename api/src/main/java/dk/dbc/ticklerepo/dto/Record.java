@@ -1,5 +1,5 @@
 /*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
  * See license text in LICENSE.txt
  */
 
@@ -24,6 +24,7 @@ import java.util.Date;
 @NamedQueries({
     @NamedQuery(name = Record.GET_RECORD_BY_LOCALID_QUERY_NAME, query = Record.GET_RECORD_BY_LOCALID_QUERY),
     @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY),
+    @NamedQuery(name = Record.GET_RECORDS_IN_DATASET_QUERY_NAME, query = Record.GET_RECORDS_IN_DATASET_QUERY),
     @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
     @NamedQuery(name = Record.UNDO_MARK_QUERY_NAME, query = Record.UNDO_MARK_QUERY),
     @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY)
@@ -36,6 +37,10 @@ public class Record {
     public static final String GET_RECORDS_IN_BATCH_QUERY =
             "SELECT record FROM Record record WHERE record.batch = :batch ORDER BY record.id ASC";
     public static final String GET_RECORDS_IN_BATCH_QUERY_NAME = "Record.getRecordsInBatch";
+
+    public static final String GET_RECORDS_IN_DATASET_QUERY =
+            "SELECT record FROM Record record WHERE record.dataset = :dataset ORDER BY record.id ASC";
+    public static final String GET_RECORDS_IN_DATASET_QUERY_NAME = "Record.getRecordsInDataSet";
 
     public static final String MARK_QUERY =
             "UPDATE Record record SET record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET " +

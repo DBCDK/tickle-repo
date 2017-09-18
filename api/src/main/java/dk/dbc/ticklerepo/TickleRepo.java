@@ -1,5 +1,5 @@
 /*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU 3
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
  * See license text in LICENSE.txt
  */
 
@@ -125,6 +125,17 @@ public class TickleRepo {
     public ResultSet<Record> getRecordsInBatch(Batch batch) {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_BATCH_QUERY_NAME)
                 .setParameter("batch", batch.getId());
+        return new ResultSet<>(query);
+    }
+
+   /**
+     * Returns iterator for all records belonging to given data set
+     * @param dataset data set
+     * @return batch iterator as ResultSet abstraction
+     */
+    public ResultSet<Record> getRecordsInDataSet(DataSet dataSet) {
+        final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_DATASET_QUERY_NAME)
+                .setParameter("dataset", dataSet.getId());
         return new ResultSet<>(query);
     }
 
