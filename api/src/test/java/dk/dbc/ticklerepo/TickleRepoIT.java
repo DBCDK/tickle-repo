@@ -72,7 +72,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
-    public void gettingBatchRecordsFromNonExistingBatchReturnsResultWithRecords() {
+    public void gettingBatchRecordsFromExistingBatchReturnsResultWithRecords() {
         final Batch batch = new Batch()
                 .withId(1);
 
