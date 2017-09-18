@@ -5,40 +5,25 @@
 
 package dk.dbc.ticklerepo;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.commons.persistence.JpaIntegrationTest;
+import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 import javax.persistence.RollbackException;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -46,46 +31,17 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class TickleRepoIT {
-    protected static final PGSimpleDataSource datasource;
-
-    static {
-        datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ticklerepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(getPostgresqlPort());
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-    }
-
-    private static Map<String, String> entityManagerProperties = new HashMap<>();
-    private static EntityManagerFactory entityManagerFactory;
-    private EntityManager entityManager;
-
-    @BeforeClass
-    public static void migrateDatabase() throws Exception {
-        final TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
-        dbMigrator.migrate();
-    }
-
-    @BeforeClass
-    public static void createEntityManagerFactory() {
-        entityManagerProperties.put(JDBC_USER, datasource.getUser());
-        entityManagerProperties.put(JDBC_PASSWORD, datasource.getPassword());
-        entityManagerProperties.put(JDBC_URL, datasource.getUrl());
-        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        entityManagerProperties.put("eclipselink.logging.level", "FINE");
-        entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT", entityManagerProperties);
-    }
-
-    @Before
-    public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(entityManagerProperties);
+public class TickleRepoIT extends JpaIntegrationTest {
+    @Override
+    public JpaTestEnvironment setup() {
+        final PGSimpleDataSource dataSource = createDataSource();
+        migrateDatabase(dataSource);
+        return new JpaTestEnvironment(dataSource, "tickleRepoIT");
     }
 
     @Before
     public void resetDatabase() throws SQLException {
-        try (Connection conn = datasource.getConnection();
+        try (Connection conn = env().getDatasource().getConnection();
              Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM record");
             statement.executeUpdate("DELETE FROM batch");
@@ -97,14 +53,8 @@ public class TickleRepoIT {
     }
 
     @Before
-    public void populateDatabase() throws URISyntaxException {
+    public void populateDatabase() {
         executeScriptResource("/populate.sql");
-    }
-
-    @After
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
     }
 
     @Test
@@ -141,10 +91,10 @@ public class TickleRepoIT {
         final Batch batch = new Batch()
                 .withBatchKey(1000004)
                 .withType(Batch.Type.TOTAL)
-                .withDataset(entityManager.find(DataSet.class, 1).getId());
+                .withDataset(env().getEntityManager().find(DataSet.class, 1).getId());
 
         final TickleRepo tickleRepo = tickleRepo();
-        Batch batchCreated = transaction_scoped(() -> tickleRepo.createBatch(batch));
+        Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
 
         assertThat("batch ID", batchCreated.getId(), is(4));
         assertThat("batch key", batchCreated.getBatchKey(), is(batch.getBatchKey()));
@@ -165,7 +115,8 @@ public class TickleRepoIT {
         expectedRecords.add(new Record().withLocalId("local1_1_9").withStatus(Record.Status.RESET));
         expectedRecords.add(new Record().withLocalId("local1_1_10").withStatus(Record.Status.DELETED));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(entityManager.find(Batch.class, 1))) {
+        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
+                env().getEntityManager().find(Batch.class, 1))) {
             for (Record record : rs) {
                 final Record expectedRecord = expectedRecords.remove();
                 assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
@@ -180,10 +131,10 @@ public class TickleRepoIT {
         final Batch batch = new Batch()
                 .withBatchKey(1000004)
                 .withType(Batch.Type.INCREMENTAL)
-                .withDataset(entityManager.find(DataSet.class, 1).getId());
+                .withDataset(env().getEntityManager().find(DataSet.class, 1).getId());
 
         final TickleRepo tickleRepo = tickleRepo();
-        Batch batchCreated = transaction_scoped(() -> tickleRepo.createBatch(batch));
+        Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
 
         assertThat("batch ID", batchCreated.getId(), is(4));
         assertThat("batch key", batchCreated.getBatchKey(), is(batch.getBatchKey()));
@@ -204,7 +155,8 @@ public class TickleRepoIT {
         expectedRecords.add(new Record().withLocalId("local1_1_9").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local1_1_10").withStatus(Record.Status.DELETED));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(entityManager.find(Batch.class, 1))) {
+        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
+                env().getEntityManager().find(Batch.class, 1))) {
             for (Record record : rs) {
                 final Record expectedRecord = expectedRecords.remove();
                 assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
@@ -233,10 +185,10 @@ public class TickleRepoIT {
         expectedRecords.add(new Record().withLocalId("local3_2_9").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_10").withStatus(Record.Status.DELETED));
 
-        final Batch batch = entityManager.find(Batch.class, 3);
+        final Batch batch = env().getEntityManager().find(Batch.class, 3);
 
         final TickleRepo tickleRepo = tickleRepo();
-        transaction_scoped(() -> tickleRepo.closeBatch(batch));
+        env().getPersistenceContext().run(() -> tickleRepo.closeBatch(batch));
 
         try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
             for (Record record : rs) {
@@ -253,7 +205,7 @@ public class TickleRepoIT {
         assertThat("checksum reset on deleted records", deletedRecord.getChecksum(),
                 is(""));
 
-        entityManager.refresh(batch);
+        env().getEntityManager().refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
     }
 
@@ -271,11 +223,11 @@ public class TickleRepoIT {
         expectedRecords.add(new Record().withLocalId("local3_2_9").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local3_2_10").withStatus(Record.Status.DELETED));
 
-        final Batch batch = entityManager.find(Batch.class, 3)
+        final Batch batch = env().getEntityManager().find(Batch.class, 3)
                 .withType(Batch.Type.INCREMENTAL);
 
         final TickleRepo tickleRepo = tickleRepo();
-        transaction_scoped(() -> tickleRepo.closeBatch(batch));
+        env().getPersistenceContext().run(() -> tickleRepo.closeBatch(batch));
 
         try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
             for (Record record : rs) {
@@ -286,29 +238,29 @@ public class TickleRepoIT {
         }
         assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
 
-        entityManager.refresh(batch);
+        env().getEntityManager().refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
     }
 
     @Test
     public void gettingNextBatchWhenCompleted() {
-        final Batch batch2 = entityManager.find(Batch.class, 2);
-        final Batch batch3 = entityManager.find(Batch.class, 3);
+        final Batch batch2 = env().getEntityManager().find(Batch.class, 2);
+        final Batch batch3 = env().getEntityManager().find(Batch.class, 3);
 
-        transaction_scoped(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
+        env().getPersistenceContext().run(() -> batch3.withTimeOfCompletion(new Timestamp(new Date().getTime())));
 
         assertThat(tickleRepo().getNextBatch(batch2).orElse(null).getId(), is(batch3.getId()));
     }
 
     @Test
     public void gettingNextBatchWhenNotCompleted() {
-        final Batch batch2 = entityManager.find(Batch.class, 2);
+        final Batch batch2 = env().getEntityManager().find(Batch.class, 2);
         assertThat(tickleRepo().getNextBatch(batch2).isPresent(), is(false));
     }
 
     @Test
     public void gettingNextBatchWhenNoneExist() {
-        final Batch batch3 = entityManager.find(Batch.class, 3);
+        final Batch batch3 = env().getEntityManager().find(Batch.class, 3);
         assertThat(tickleRepo().getNextBatch(batch3).isPresent(), is(false));
     }
 
@@ -390,7 +342,8 @@ public class TickleRepoIT {
 
     @Test
     public void createDataSet_returns() {
-        final DataSet persisted = transaction_scoped(() -> tickleRepo().createDataSet(new DataSet().withName("dataset3").withAgencyId(123458)));
+        final DataSet persisted = env().getPersistenceContext().run(() ->
+                tickleRepo().createDataSet(new DataSet().withName("dataset3").withAgencyId(123458)));
         assertThat("dataSet ID", persisted.getId(), is(3));
         assertThat("dataSet name", persisted.getName(), is("dataset3"));
         assertThat("dataSet agencyId", persisted.getAgencyId(), is(123458));
@@ -400,7 +353,7 @@ public class TickleRepoIT {
     @Test
     public void localIdMustBeUniqueForDataset() {
         try {
-            transaction_scoped(() -> {
+            env().getPersistenceContext().run(() -> {
                 final Record record = new Record()
                         .withBatch(1)
                         .withDataset(1)
@@ -409,7 +362,7 @@ public class TickleRepoIT {
                         .withStatus(Record.Status.ACTIVE)
                         .withContent("content".getBytes())
                         .withChecksum("checksum");
-                entityManager.persist(record);
+                env().getEntityManager().persist(record);
             });
             fail("No exception thrown");
         } catch (RollbackException e) {
@@ -419,12 +372,12 @@ public class TickleRepoIT {
 
     @Test
     public void abortingBatchUndoMarks() {
-        final Batch batch = entityManager.find(Batch.class, 2);
+        final Batch batch = env().getEntityManager().find(Batch.class, 2);
 
         final TickleRepo tickleRepo = tickleRepo();
-        transaction_scoped(() -> tickleRepo.abortBatch(batch));
+        env().getPersistenceContext().run(() -> tickleRepo.abortBatch(batch));
 
-        entityManager.refresh(batch);
+        env().getEntityManager().refresh(batch);
         assertThat("batch time of completion", batch.getTimeOfCompletion(), is(notNullValue()));
 
         final LinkedList<Record> expectedRecords = new LinkedList<>();
@@ -461,13 +414,13 @@ public class TickleRepoIT {
                 .withContent("content".getBytes())
                 .withChecksum("checksum");
 
-        final Timestamp timestamp = transaction_scoped(() -> {
-            entityManager.persist(record);
+        final Timestamp timestamp = env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(record);
             assertThat("timeOfLastModification after persist", record.getTimeOfLastModification(), is(notNullValue()));
             return record.getTimeOfLastModification();
         });
 
-        transaction_scoped(() -> record.withStatus(Record.Status.DELETED));
+        env().getPersistenceContext().run(() -> record.withStatus(Record.Status.DELETED));
 
         assertThat("timeOfLastModification after update", record.getTimeOfLastModification(), is(notNullValue()));
         assertThat("timeOfLastModification after update", record.getTimeOfLastModification(), is(not(timestamp)));
@@ -475,49 +428,8 @@ public class TickleRepoIT {
 
     private TickleRepo tickleRepo() {
         final TickleRepo tickleRepo = new TickleRepo();
-        tickleRepo.entityManager = entityManager;
+        tickleRepo.entityManager = env().getEntityManager();
         return tickleRepo;
-    }
-
-    private <T> T transaction_scoped(CodeBlockExecution<T> codeBlock) {
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        try {
-            return codeBlock.execute();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            transaction.commit();
-        }
-    }
-
-    private void transaction_scoped(CodeBlockVoidExecution codeBlock) {
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        try {
-            codeBlock.execute();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            transaction.commit();
-        }
-    }
-
-    /**
-     * Represents a code block execution with return value
-     * @param <T> return type of the code block execution
-     */
-    @FunctionalInterface
-    interface CodeBlockExecution<T> {
-        T execute() throws Exception;
-    }
-
-    /**
-     * Represents a code block execution without return value
-     */
-    @FunctionalInterface
-    interface CodeBlockVoidExecution {
-        void execute() throws Exception;
     }
 
     private static int getPostgresqlPort() {
@@ -528,20 +440,18 @@ public class TickleRepoIT {
         return 5432;
     }
 
-    private static void executeScriptResource(String resourcePath) {
-        final URL resource = TickleRepoIT.class.getResource(resourcePath);
-        try {
-            executeScript(new File(resource.toURI()));
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+    private PGSimpleDataSource createDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName("ticklerepo");
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(getPostgresqlPort());
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
     }
 
-    private static void executeScript(File scriptFile) {
-        try (Connection conn = datasource.getConnection()) {
-            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
-        } catch (SQLException | IOException e) {
-            throw new IllegalStateException(e);
-        }
+    private void migrateDatabase(DataSource dataSource) {
+        final TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(dataSource);
+        dbMigrator.migrate();
     }
 }

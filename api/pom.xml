@@ -33,6 +33,13 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testutil-assert</artifactId>
+      <version>1.3-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-jpa</artifactId>
+      <version>1.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
