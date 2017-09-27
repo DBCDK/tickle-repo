@@ -24,6 +24,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class contains the tickle repository API
@@ -277,6 +279,30 @@ public class TickleRepo {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Returns an estimate of the number of records in the given dataset
+     * @param dataSet dataset
+     * @return estimated number of records
+     */
+    public int estimateSizeOf(DataSet dataSet) {
+        if (dataSet != null) {
+            final Optional<String> estimate = entityManager.createNamedQuery(
+                    Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME, String.class)
+                    .setParameter(1, dataSet.getId())
+                    .getResultList().stream()
+                    .filter(row -> row.contains(" on record "))
+                    .findFirst();
+            if (estimate.isPresent()) {
+                final Pattern rowsPattern = Pattern.compile(" rows=(\\d+) ");
+                final Matcher rowsMatcher = rowsPattern.matcher(estimate.get());
+                if (rowsMatcher.find()) {
+                    return Integer.parseInt(rowsMatcher.group(1));
+                }
+            }
+        }
+        return 0;
     }
 
     /**

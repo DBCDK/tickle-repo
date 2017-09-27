@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.PrePersist;
@@ -28,6 +30,10 @@ import java.util.Date;
     @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
     @NamedQuery(name = Record.UNDO_MARK_QUERY_NAME, query = Record.UNDO_MARK_QUERY),
     @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY)
+})
+@NamedNativeQueries({
+    @NamedNativeQuery(name = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
+                query = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY)
 })
 public class Record {
     public static final String GET_RECORD_BY_LOCALID_QUERY =
@@ -56,6 +62,11 @@ public class Record {
             "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED, record.timeOfLastModification = :now, record.checksum = '' " +
                     "WHERE record.dataset = :dataset AND record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET";
     public static final String SWEEP_QUERY_NAME = "Record.sweep";
+
+    public static final String ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY =
+            "EXPLAIN (ANALYZE OFF, FORMAT TEXT) SELECT count(*) FROM record WHERE dataset = ?";
+    public static final String ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME =
+            "Record.estimatedNumberOfRecordsInDataSet";
 
     public enum Status {
         ACTIVE,
