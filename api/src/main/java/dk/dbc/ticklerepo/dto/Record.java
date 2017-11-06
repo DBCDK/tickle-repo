@@ -41,11 +41,11 @@ public class Record {
     public static final String GET_RECORD_BY_LOCALID_QUERY_NAME = "Record.getRecordByLocalId";
 
     public static final String GET_RECORDS_IN_BATCH_QUERY =
-            "SELECT record FROM Record record WHERE record.batch = :batch ORDER BY record.id ASC";
+            "SELECT record FROM Record record WHERE record.batch = ?1 ORDER BY record.id ASC";
     public static final String GET_RECORDS_IN_BATCH_QUERY_NAME = "Record.getRecordsInBatch";
 
     public static final String GET_RECORDS_IN_DATASET_QUERY =
-            "SELECT record FROM Record record WHERE record.dataset = :dataset ORDER BY record.id ASC";
+            "SELECT record FROM Record record WHERE record.dataset = ?1 ORDER BY record.id ASC";
     public static final String GET_RECORDS_IN_DATASET_QUERY_NAME = "Record.getRecordsInDataSet";
 
     public static final String MARK_QUERY =
@@ -161,8 +161,22 @@ public class Record {
         return timeOfCreation;
     }
 
+    public Record withTimeOfCreation(Timestamp timeOfCreation) {
+        if (timeOfCreation != null) {
+            this.timeOfCreation = new Timestamp(timeOfCreation.getTime());
+        }
+        return this;
+    }
+
     public Timestamp getTimeOfLastModification() {
         return timeOfLastModification;
+    }
+
+    public Record withTimeOfLastModification(Timestamp timeOfLastModification) {
+        if (timeOfLastModification != null) {
+            this.timeOfLastModification = new Timestamp(timeOfLastModification.getTime());
+        }
+        return this;
     }
 
     public byte[] getContent() {
