@@ -8,9 +8,12 @@ package dk.dbc.ticklerepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
-import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.QueryHints;
-import org.eclipse.persistence.queries.CursoredStream;
+import dk.dbc.ticklerepo.dto.RecordStatusConverter;
+import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
+import org.eclipse.persistence.jpa.JpaEntityManager;
+import org.eclipse.persistence.queries.DatabaseQuery;
+import org.eclipse.persistence.sessions.DatabaseRecord;
+import org.eclipse.persistence.sessions.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +21,19 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
+import javax.persistence.Parameter;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -121,24 +131,30 @@ public class TickleRepo {
 
     /**
      * Returns iterator for all records belonging to given batch
+     * <p>
+     * This method needs to run in a transaction.
+     * </p>
      * @param batch batch
      * @return batch iterator as ResultSet abstraction
      */
     public ResultSet<Record> getRecordsInBatch(Batch batch) {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_BATCH_QUERY_NAME)
-                .setParameter("batch", batch.getId());
-        return new ResultSet<>(query);
+                .setParameter(1, batch.getId());
+        return new ResultSet<>(query, new RecordMapping());
     }
 
    /**
-     * Returns iterator for all records belonging to given data set
-     * @param dataSet data set
-     * @return batch iterator as ResultSet abstraction
-     */
+    * Returns iterator for all records belonging to given data set
+    * <p>
+    * This method needs to run in a transaction.
+    * </p>
+     @param dataSet data set
+    * @return batch iterator as ResultSet abstraction
+    */
     public ResultSet<Record> getRecordsInDataSet(DataSet dataSet) {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_DATASET_QUERY_NAME)
-                .setParameter("dataset", dataSet.getId());
-        return new ResultSet<>(query);
+                .setParameter(1, dataSet.getId());
+        return new ResultSet<>(query, new RecordMapping());
     }
 
     /**
@@ -205,30 +221,78 @@ public class TickleRepo {
     }
 
     /**
-     * This class represents a one-time iteration of a tickle repository result set of non-managed entities.
+     * This class represents a one-time iteration of a tickle repository
+     * result set of non-managed entities
+     * <p>
+     * Note that only positional bind parameters are supported.
+     * </p>
      */
     public class ResultSet<T> implements Iterable<T>, AutoCloseable {
-        private final int BUFFER_SIZE = 50;
+        private final int BUFFER_SIZE = 1000;
 
-        final CursoredStream cursor;
+        private final PreparedStatement statement;
+        private final java.sql.ResultSet resultSet;
+        private final Function<java.sql.ResultSet, T> resultSetMapping;
+        private final boolean hasRows;
 
-        ResultSet(Query query) {
-            // Yes we are breaking general JPA compatibility using below QueryHints and CursoredStream,
-            // but we need to be able to handle very large result sets.
+        ResultSet(Query query, Function<java.sql.ResultSet, T> resultSetMapping) {
+            try {
+                this.statement = createStatement(query);
+                this.resultSet = statement.executeQuery();
+                this.resultSetMapping = resultSetMapping;
+                // This may not be supported by all drivers and/or query types
+                this.hasRows = resultSet.isBeforeFirst();
+            } catch (SQLException e) {
+                throw new PersistenceException(e);
+            }
+        }
 
-            // Configures the query to return a CursoredStream, which is a stream of the JDBC ResultSet.
-            query.setHint(QueryHints.CURSOR, HintValues.TRUE);
-            // Configures the CursoredStream with the number of objects fetched from the stream on a next() call.
-            query.setHint(QueryHints.CURSOR_PAGE_SIZE, BUFFER_SIZE);
-            // Configures the JDBC fetch-size for the result set.
-            query.setHint(QueryHints.JDBC_FETCH_SIZE, BUFFER_SIZE);
-            // Configures the query to not use the shared cache and the transactional cache/persistence context.
-            // Resulting objects will be read and built directly from the database, and not registered in the
-            // persistence context. Changes made to the objects will not be updated unless merged and object identity
-            // will not be maintained.
-            // This is necessary to avoid OutOfMemoryError from very large persistence contexts.
-            query.setHint(QueryHints.MAINTAIN_CACHE, HintValues.FALSE);
-            cursor = (CursoredStream) query.getSingleResult();
+        private PreparedStatement createStatement(Query query) {
+            /*
+                Yes we are breaking general JPA compatibility here but we need
+                to be able to handle very large result sets without exhausting
+                the main memory.
+
+                Both CursoredStream and ScrollableCursor solutions have been
+                tested, but it seems like the PostgreSQL JDBC driver insists
+                on pulling in the entire result set upfront nonetheless.
+            */
+
+            final Session session = entityManager.unwrap(JpaEntityManager.class).getActiveSession();
+            final DatabaseQuery databaseQuery = query.unwrap(EJBQueryImpl.class).getDatabaseQuery();
+            databaseQuery.prepareCall(session, new DatabaseRecord());
+            String queryString = databaseQuery.getSQLString();
+            final int limit = query.getMaxResults();
+            if (limit > 0 && limit != Integer.MAX_VALUE) {
+                queryString += " LIMIT " + limit;
+            }
+            final int offset = query.getFirstResult();
+            if (offset > 0) {
+                queryString += " OFFSET " + offset;
+            }
+            LOGGER.info(queryString);
+
+            final Connection connection = entityManager.unwrap(Connection.class);
+            if (connection == null) {
+                throw new IllegalStateException("Connection is null - maybe not in scope of a transaction?");
+            }
+            try {
+                final PreparedStatement statement = connection.prepareStatement(queryString);
+                statement.setFetchSize(BUFFER_SIZE);
+                final Set<Parameter<?>> parameters = query.getParameters();
+                for (Parameter<?> parameter : parameters) {
+                    if (parameter.getName() != null) {
+                        throw new IllegalStateException(
+                                "This query must only have positional parameters '" +
+                                        parameter.getName() + "' was named");
+                    }
+                    statement.setObject(parameter.getPosition(),
+                            query.getParameterValue(parameter.getPosition()));
+                }
+                return statement;
+            } catch (SQLException e) {
+                throw new PersistenceException(e);
+            }
         }
 
         @Override
@@ -236,27 +300,69 @@ public class TickleRepo {
             return new Iterator<T>() {
                 @Override
                 public boolean hasNext() {
-                    return cursor.hasNext();
+                    try {
+                        return hasRows && !resultSet.isLast();
+                    } catch (SQLException e) {
+                        throw new PersistenceException(e);
+                    }
                 }
 
                 @Override
-                @SuppressWarnings("unchecked")
                 public T next() {
-                    // To avoid OutOfMemoryError we occasionally need to clear the internal data structure of the
-                    // CursoredStream.
-                    if (cursor.getPosition() % BUFFER_SIZE == 0) {
-                        cursor.clear();
+                    try {
+                        if (resultSet.next()) {
+                            return resultSetMapping.apply(resultSet);
+                        }
+                        return null;
+                    } catch (SQLException e) {
+                        throw new PersistenceException(e);
                     }
-                    return (T) cursor.next();
                 }
             };
         }
 
         @Override
         public void close() {
-            if (cursor != null) {
-                cursor.close();
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException(e);
             }
+        }
+    }
+
+    /**
+     * Maps result set of an SQL query to a {@link Record}
+     */
+    private static class RecordMapping implements Function<java.sql.ResultSet, Record> {
+        private final RecordStatusConverter recordStatusConverter = new RecordStatusConverter();
+
+        @Override
+        public Record apply(java.sql.ResultSet resultSet) {
+            if (resultSet != null) {
+                try {
+                    return new Record()
+                            .withId(resultSet.getInt("ID"))
+                            .withBatch(resultSet.getInt("BATCH"))
+                            .withChecksum(resultSet.getString("CHECKSUM"))
+                            .withContent(resultSet.getBytes("CONTENT"))
+                            .withDataset(resultSet.getInt("DATASET"))
+                            .withLocalId(resultSet.getString("LOCALID"))
+                            .withStatus(recordStatusConverter.convertToEntityAttribute(
+                                    resultSet.getString("STATUS")))
+                            .withTimeOfCreation(resultSet.getTimestamp("TIMEOFCREATION"))
+                            .withTimeOfLastModification(resultSet.getTimestamp("TIMEOFLASTMODIFICATION"))
+                            .withTrackingId(resultSet.getString("TRACKINGID"));
+                } catch (SQLException e) {
+                    throw new PersistenceException(e);
+                }
+            }
+            return null;
         }
     }
 

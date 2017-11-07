@@ -62,13 +62,15 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final Batch batch = new Batch()
                 .withId(42);
 
-        int recordsInBatch = 0;
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
-            for (Record record : rs) {
-                recordsInBatch++;
+        env().getPersistenceContext().run(() -> {
+            int recordsInBatch = 0;
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+                for (Record record : rs) {
+                    recordsInBatch++;
+                }
             }
-        }
-        assertThat(recordsInBatch, is(0));
+            assertThat(recordsInBatch, is(0));
+        });
     }
 
     @Test
@@ -76,14 +78,16 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final Batch batch = new Batch()
                 .withId(1);
 
-        int recordsInBatch = 0;
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
-            for (Record record : rs) {
-                recordsInBatch++;
-                assertThat("record ID", record.getId(), is(recordsInBatch));
+        env().getPersistenceContext().run(() -> {
+            int recordsInBatch = 0;
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+                for (Record record : rs) {
+                    recordsInBatch++;
+                    assertThat("record ID", record.getId(), is(recordsInBatch));
+                }
             }
-        }
-        assertThat("number of records in batch", recordsInBatch, is(10));
+            assertThat("number of records in batch", recordsInBatch, is(10));
+        });
     }
 
     @Test
@@ -115,14 +119,15 @@ public class TickleRepoIT extends JpaIntegrationTest {
         expectedRecords.add(new Record().withLocalId("local1_1_9").withStatus(Record.Status.RESET));
         expectedRecords.add(new Record().withLocalId("local1_1_10").withStatus(Record.Status.DELETED));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
-                env().getEntityManager().find(Batch.class, 1))) {
-            for (Record record : rs) {
-                final Record expectedRecord = expectedRecords.remove();
-                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
-                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
-            }
-        }
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
+                    env().getEntityManager().find(Batch.class, 1))) {
+                for (Record record : rs) {
+                    final Record expectedRecord = expectedRecords.remove();
+                    assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                    assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+                }
+            }});
         assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
     }
 
@@ -155,15 +160,17 @@ public class TickleRepoIT extends JpaIntegrationTest {
         expectedRecords.add(new Record().withLocalId("local1_1_9").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local1_1_10").withStatus(Record.Status.DELETED));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
-                env().getEntityManager().find(Batch.class, 1))) {
-            for (Record record : rs) {
-                final Record expectedRecord = expectedRecords.remove();
-                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
-                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(
+                    env().getEntityManager().find(Batch.class, 1))) {
+                for (Record record : rs) {
+                    final Record expectedRecord = expectedRecords.remove();
+                    assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                    assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+                }
             }
-        }
-        assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+            assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+        });
     }
 
     @Test
@@ -190,13 +197,13 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final TickleRepo tickleRepo = tickleRepo();
         env().getPersistenceContext().run(() -> tickleRepo.closeBatch(batch));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
-            for (Record record : rs) {
-                final Record expectedRecord = expectedRecords.remove();
-                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
-                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
-            }
-        }
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+                for (Record record : rs) {
+                    final Record expectedRecord = expectedRecords.remove();
+                    assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                    assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+                }}});
         assertThat("number of records in batch is 15", expectedRecords.isEmpty(), is(true));
 
         final Record deletedRecord = tickleRepo.lookupRecord(new Record().withId(11)).orElse(null);
@@ -229,14 +236,16 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final TickleRepo tickleRepo = tickleRepo();
         env().getPersistenceContext().run(() -> tickleRepo.closeBatch(batch));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
-            for (Record record : rs) {
-                final Record expectedRecord = expectedRecords.remove();
-                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
-                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+                for (Record record : rs) {
+                    final Record expectedRecord = expectedRecords.remove();
+                    assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                    assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+                }
             }
-        }
-        assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+            assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+        });
 
         env().getEntityManager().refresh(batch);
         assertThat("batch is marked as completed", batch.getTimeOfCompletion(), is(notNullValue()));
@@ -392,14 +401,16 @@ public class TickleRepoIT extends JpaIntegrationTest {
         expectedRecords.add(new Record().withLocalId("local2_2_9").withStatus(Record.Status.ACTIVE));
         expectedRecords.add(new Record().withLocalId("local2_2_10").withStatus(Record.Status.DELETED));
 
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
-            for (Record record : rs) {
-                final Record expectedRecord = expectedRecords.remove();
-                assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
-                assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInBatch(batch)) {
+                for (Record record : rs) {
+                    final Record expectedRecord = expectedRecords.remove();
+                    assertThat("record local ID " + expectedRecords, record.getLocalId(), is(expectedRecord.getLocalId()));
+                    assertThat("record status " + expectedRecords, record.getStatus(), is(expectedRecord.getStatus()));
+                }
             }
-        }
-        assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+            assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
+        });
 
     }
 
@@ -431,14 +442,16 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final DataSet dataSet = new DataSet()
                 .withId(1);
 
-        int recordsInDataSet = 0;
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
-            for (Record record : rs) {
-                recordsInDataSet++;
-                assertThat("record ID", record.getId(), is(recordsInDataSet));
+        env().getPersistenceContext().run(() -> {
+            int recordsInDataSet = 0;
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
+                for (Record record : rs) {
+                    recordsInDataSet++;
+                    assertThat("record ID", record.getId(), is(recordsInDataSet));
+                }
             }
-        }
-        assertThat("number of records in data set", recordsInDataSet, is(10));
+            assertThat("number of records in data set", recordsInDataSet, is(10));
+        });
     }
 
     @Test
@@ -446,13 +459,15 @@ public class TickleRepoIT extends JpaIntegrationTest {
         final DataSet dataSet = new DataSet()
                 .withId(42);
 
-        int recordsInDataSet = 0;
-        try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
-            for (Record record : rs) {
-                recordsInDataSet++;
+        env().getPersistenceContext().run(() -> {
+            int recordsInDataSet = 0;
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
+                for (Record record : rs) {
+                    recordsInDataSet++;
+                }
             }
-        }
-        assertThat(recordsInDataSet, is(0));
+            assertThat(recordsInDataSet, is(0));
+        });
     }
 
     @Test
