@@ -473,7 +473,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
     @Test
     public void estimateSizeOf_dataset() {
         final DataSet dataSet = new DataSet().withId(1);
-        assertThat(tickleRepo().estimateSizeOf(dataSet) > 0, is(true));
+        assertThat(tickleRepo().estimateSizeOf(dataSet), is(10));
     }
 
     private TickleRepo tickleRepo() {

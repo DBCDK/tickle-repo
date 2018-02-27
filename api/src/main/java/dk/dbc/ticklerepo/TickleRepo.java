@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 @Stateless
 public class TickleRepo {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleRepo.class);
+    private static final int DATASET_SIZE_ESTIMATE_THRESHOLD = 1000000;
 
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
@@ -388,7 +389,8 @@ public class TickleRepo {
     }
 
     /**
-     * Returns an estimate of the number of records in the given dataset
+     * Returns an estimate of the number of records in the given dataset or
+     * the exact number if the estimate is below {@link #DATASET_SIZE_ESTIMATE_THRESHOLD}
      * @param dataSet dataset
      * @return estimated number of records
      */
@@ -404,9 +406,28 @@ public class TickleRepo {
                 final Pattern rowsPattern = Pattern.compile(" rows=(\\d+) ");
                 final Matcher rowsMatcher = rowsPattern.matcher(estimate.get());
                 if (rowsMatcher.find()) {
-                    return Integer.parseInt(rowsMatcher.group(1));
+                    final int sizeEstimate = Integer.parseInt(rowsMatcher.group(1));
+                    if (sizeEstimate < DATASET_SIZE_ESTIMATE_THRESHOLD) {
+                        return sizeOf(dataSet);
+                    }
+                    return sizeEstimate;
                 }
             }
+        }
+        return 0;
+    }
+
+    /**
+     * Returns the number of records in the given dataset
+     * @param dataSet dataset
+     * @return number of records
+     */
+    public int sizeOf(DataSet dataSet) {
+        if (dataSet != null) {
+            return Math.toIntExact(entityManager.createNamedQuery(
+                    Record.NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME, Long.class)
+                    .setParameter(1, dataSet.getId())
+                    .getSingleResult());
         }
         return 0;
     }
