@@ -29,7 +29,8 @@ import java.util.Date;
     @NamedQuery(name = Record.GET_RECORDS_IN_DATASET_QUERY_NAME, query = Record.GET_RECORDS_IN_DATASET_QUERY),
     @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
     @NamedQuery(name = Record.UNDO_MARK_QUERY_NAME, query = Record.UNDO_MARK_QUERY),
-    @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY)
+    @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY),
+    @NamedQuery(name = Record.SWEEP_OUTDATED_QUERY_NAME, query = Record.SWEEP_OUTDATED_QUERY),
 })
 @NamedNativeQueries({
     @NamedNativeQuery(name = Record.NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
@@ -64,6 +65,11 @@ public class Record {
             "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED, record.timeOfLastModification = :now, record.checksum = '' " +
                     "WHERE record.dataset = :dataset AND record.status = dk.dbc.ticklerepo.dto.Record.Status.RESET";
     public static final String SWEEP_QUERY_NAME = "Record.sweep";
+
+    public static final String SWEEP_OUTDATED_QUERY =
+            "UPDATE Record record SET record.batch = :batch, record.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED, record.timeOfLastModification = :now, record.checksum = '' " +
+                    "WHERE record.dataset = :dataset AND record.timeOfLastModification < :cutOffTime";
+    public static final String SWEEP_OUTDATED_QUERY_NAME = "Record.sweepOutdated";
 
     public static final String NUMBER_OF_RECORDS_IN_DATASET_QUERY =
             "SELECT count(*) FROM record WHERE dataset = ?";

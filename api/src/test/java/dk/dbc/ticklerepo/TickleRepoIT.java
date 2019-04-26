@@ -14,15 +14,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
+import javax.persistence.Query;
 import javax.persistence.RollbackException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -474,6 +479,56 @@ public class TickleRepoIT extends JpaIntegrationTest {
     public void estimateSizeOf_dataset() {
         final DataSet dataSet = new DataSet().withId(1);
         assertThat(tickleRepo().estimateSizeOf(dataSet), is(10));
+    }
+
+    @Test
+    public void deleteOutdatedRecords() {
+        final Set<Integer> expectedRecords = new HashSet<>();
+
+        final DataSet dataSet = env().getEntityManager().find(DataSet.class, 1);
+
+        /* Force two records from the dataset to have a
+           timeOfLastModification value in the past and
+           remember their IDs. */
+        env().getPersistenceContext().run(() -> {
+            try (TickleRepo.ResultSet<Record> rs = tickleRepo().getRecordsInDataSet(dataSet)) {
+                final Query updateTimeOfLastModification = env().getEntityManager()
+                        .createNativeQuery("UPDATE record SET timeOfLastModification = ?1 WHERE id = ?2")
+                        .setParameter(1, Timestamp.from(
+                                Instant.now().minus(2, ChronoUnit.DAYS)));
+                for (Record record : rs) {
+                    if (expectedRecords.size() == 2) {
+                        break;
+                    }
+                    updateTimeOfLastModification.setParameter(2, record.getId());
+                    updateTimeOfLastModification.executeUpdate();
+                    expectedRecords.add(record.getId());
+                }
+            }
+        });
+
+        /* Create a batch for which to delete outdated records. */
+        final Batch batch = env().getPersistenceContext().run(()
+                -> tickleRepo().createBatch(new Batch()
+                        .withBatchKey(42)
+                        .withType(Batch.Type.INCREMENTAL)
+                        .withDataset(dataSet.getId())));
+
+        /* Call deleteOutdatedRecordsInBatch while ensuring that
+           the two records modified above are included. */
+        env().getPersistenceContext().run(() -> tickleRepo().deleteOutdatedRecordsInBatch(
+                batch, Instant.now().minus(1, ChronoUnit.DAYS)));
+
+        /* Verify the expected records. */
+        int numberOfRecordsInBatch = 0;
+        for (Record record : env().getPersistenceContext().run(
+                        () -> tickleRepo().getRecordsInBatch(batch))) {
+            assertThat("expected set of records contains ID " + record.getId(),
+                    expectedRecords.contains(record.getId()), is(true));
+            numberOfRecordsInBatch++;
+        }
+        assertThat("number of outdated records",
+                numberOfRecordsInBatch, is(expectedRecords.size()));
     }
 
     private TickleRepo tickleRepo() {

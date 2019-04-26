@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Optional;
@@ -128,6 +129,24 @@ public class TickleRepo {
                 .stream()
                 .filter(batch -> batch.getTimeOfCompletion() != null)
                 .findFirst();
+    }
+
+    /**
+     * Changes the status of records in the dataset to DELETED if their time
+     * of last modification is before given cut-off time and updates the
+     * batch ID of these records to that of the given batch.
+     * @param batch batch for which to delete outdated records
+     * @param cutOffTime threshold for outdated records
+     */
+    public void deleteOutdatedRecordsInBatch(Batch batch, Instant cutOffTime) {
+        LOGGER.info("Deleted {} outdated records in dataset {} batch {}",
+                batch.getDataset(), batch.getId(),
+                entityManager.createNamedQuery(Record.SWEEP_OUTDATED_QUERY_NAME)
+                        .setParameter("batch", batch.getId())
+                        .setParameter("dataset", batch.getDataset())
+                        .setParameter("now", new Date())
+                        .setParameter("cutOffTime", Timestamp.from(cutOffTime))
+                        .executeUpdate());
     }
 
     /**
