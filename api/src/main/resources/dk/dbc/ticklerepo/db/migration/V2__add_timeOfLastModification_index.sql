@@ -1,0 +1,1 @@
+CREATE INDEX record_timeOfLastModification_index ON record(timeOfLastModification);
