@@ -23,7 +23,10 @@
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.opentable.components</groupId>
+      <artifactId>otj-pg-embedded</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -51,17 +54,10 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -72,60 +68,11 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
-            <goals>
-              <goal>reserve-network-port</goal>
-            </goals>
-            <phase>initialize</phase>
-            <configuration>
-              <maxPortNumber>65000</maxPortNumber>
-              <minPortNumber>60000</minPortNumber>
-              <portNames>
-                <portName>postgresql.port</portName>
-              </portNames>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>dk.dbc</groupId>
-        <artifactId>postgresql-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>start-postgresql</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-            <configuration>
-              <pgPort>${postgresql.port}</pgPort>
-              <pgDbName>ticklerepo</pgDbName>
-              <pgDbScripts>
-              </pgDbScripts>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-postgresql</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>shutdown</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.0.0-M1</version>
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <postgresql.port>${postgresql.port}</postgresql.port>
-          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>

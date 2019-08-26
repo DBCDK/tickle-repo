@@ -7,6 +7,8 @@ package dk.dbc.ticklerepo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.opentable.db.postgres.junit.EmbeddedPostgresRules;
+import com.opentable.db.postgres.junit.SingleInstancePostgresRule;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.jsonb.JSONBContext;
@@ -15,6 +17,7 @@ import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -42,11 +45,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TickleRepoIT extends JpaIntegrationTest {
+    @ClassRule
+    public static SingleInstancePostgresRule tickleDB = EmbeddedPostgresRules.singleInstance();
+
     @Override
     public JpaTestEnvironment setup() {
-        final PGSimpleDataSource dataSource = createDataSource();
-        migrateDatabase(dataSource);
-        return new JpaTestEnvironment(dataSource, "tickleRepoIT");
+        migrateDatabase(tickleDB.getEmbeddedPostgres().getPostgresDatabase());
+        return new JpaTestEnvironment((PGSimpleDataSource) tickleDB.getEmbeddedPostgres().getPostgresDatabase(),
+                "tickleRepoIT");
     }
 
     @Before
@@ -553,24 +559,6 @@ public class TickleRepoIT extends JpaIntegrationTest {
         }
         assertThat("number of outdated records",
                 numberOfRecordsInBatch, is(expectedRecords.size()));
-    }
-
-    private static int getPostgresqlPort() {
-        final String port = System.getProperty("postgresql.port");
-        if (port != null && !port.isEmpty()) {
-            return Integer.parseInt(port);
-        }
-        return 5432;
-    }
-
-    private PGSimpleDataSource createDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ticklerepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(getPostgresqlPort());
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
     }
 
     private void migrateDatabase(DataSource dataSource) {
