@@ -12,6 +12,7 @@
     <jta-data-source>jdbc/tickle-repo</jta-data-source>
     <class>dk.dbc.ticklerepo.dto.DataSet</class>
     <class>dk.dbc.ticklerepo.dto.BatchTypeConverter</class>
+    <class>dk.dbc.jsonb.JsonConverter</class>
     <class>dk.dbc.ticklerepo.dto.Batch</class>
     <class>dk.dbc.ticklerepo.dto.RecordStatusConverter</class>
     <class>dk.dbc.ticklerepo.dto.Record</class>
@@ -22,6 +23,7 @@
   <persistence-unit name="tickleRepoIT" transaction-type="RESOURCE_LOCAL">
     <class>dk.dbc.ticklerepo.dto.DataSet</class>
     <class>dk.dbc.ticklerepo.dto.BatchTypeConverter</class>
+    <class>dk.dbc.jsonb.JsonConverter</class>
     <class>dk.dbc.ticklerepo.dto.Batch</class>
     <class>dk.dbc.ticklerepo.dto.RecordStatusConverter</class>
     <class>dk.dbc.ticklerepo.dto.Record</class>
