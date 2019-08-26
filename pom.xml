@@ -12,8 +12,8 @@
 
   <parent>
     <groupId>dk.dbc</groupId>
-    <artifactId>dbc-pom</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>microservice-pom</artifactId>
+    <version>latest-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
 
@@ -22,42 +22,12 @@
   <packaging>pom</packaging>
   <name>tickle-repo</name>
 
-  <ciManagement>
-    <url>http://is.dbc.dk/job/tickle-repo</url>
-  </ciManagement>
-
-  <scm>
-    <connection>scm:svn:https://svn.dbc.dk/repos/tickle-repo/trunk</connection>
-    <developerConnection>scm:svn:https://svn.dbc.dk/repos/tickle-repo/trunk</developerConnection>
-    <tag>HEAD</tag>
-    <url>http://svn.dbc.dk/websvn/</url>
-  </scm>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>mavenrepo.dbc.dk</id>
-      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <repositories>
-    <repository>
-      <id>mavenrepo.dbc.dk</id>
-      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
-    </repository>
-  </repositories>
-
   <modules>
     <module>api</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>javax</groupId>
-        <artifactId>javaee-api</artifactId>
-        <version>7.0</version>
-      </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>dbc-commons-jdbc-util</artifactId>
@@ -78,33 +48,6 @@
         <artifactId>json-binding</artifactId>
         <version>0.1-SNAPSHOT</version>
       </dependency>
-      <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-        <version>4.0.3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.persistence</groupId>
-        <artifactId>eclipselink</artifactId>
-        <version>2.6.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <version>42.0.0</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>dk.dbc</groupId>
-          <artifactId>postgresql-maven-plugin</artifactId>
-          <version>1.3-SNAPSHOT</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 </project>
