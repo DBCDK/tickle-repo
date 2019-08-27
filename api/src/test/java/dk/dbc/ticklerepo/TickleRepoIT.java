@@ -5,12 +5,19 @@
 
 package dk.dbc.ticklerepo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.opentable.db.postgres.junit.EmbeddedPostgresRules;
+import com.opentable.db.postgres.junit.SingleInstancePostgresRule;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.jsonb.JSONBContext;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -26,6 +33,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,11 +45,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TickleRepoIT extends JpaIntegrationTest {
+    @ClassRule
+    public static SingleInstancePostgresRule tickleDB = EmbeddedPostgresRules.singleInstance();
+
     @Override
     public JpaTestEnvironment setup() {
-        final PGSimpleDataSource dataSource = createDataSource();
-        migrateDatabase(dataSource);
-        return new JpaTestEnvironment(dataSource, "tickleRepoIT");
+        migrateDatabase(tickleDB.getEmbeddedPostgres().getPostgresDatabase());
+        return new JpaTestEnvironment((PGSimpleDataSource) tickleDB.getEmbeddedPostgres().getPostgresDatabase(),
+                "tickleRepoIT");
     }
 
     @Before
@@ -182,6 +193,22 @@ public class TickleRepoIT extends JpaIntegrationTest {
             }
             assertThat("number of records in batch is 10", expectedRecords.isEmpty(), is(true));
         });
+    }
+
+    @Test
+    public void creatingBatchWithMetadata() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final Metadata metadata = new Metadata(42, "test");
+
+        final Batch batch = new Batch()
+                .withBatchKey(1000004)
+                .withType(Batch.Type.INCREMENTAL)
+                .withDataset(env().getEntityManager().find(DataSet.class, 1).getId())
+                .withMetadata(jsonbContext.marshall(metadata));
+
+        Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
+
+        assertThat(jsonbContext.unmarshall(batchCreated.getMetadata(), Metadata.class), is(metadata));
     }
 
     @Test
@@ -534,26 +561,61 @@ public class TickleRepoIT extends JpaIntegrationTest {
                 numberOfRecordsInBatch, is(expectedRecords.size()));
     }
 
-    private static int getPostgresqlPort() {
-        final String port = System.getProperty("postgresql.port");
-        if (port != null && !port.isEmpty()) {
-            return Integer.parseInt(port);
-        }
-        return 5432;
-    }
-
-    private PGSimpleDataSource createDataSource() {
-        final PGSimpleDataSource datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName("ticklerepo");
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(getPostgresqlPort());
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-        return datasource;
-    }
-
     private void migrateDatabase(DataSource dataSource) {
         final TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(dataSource);
         dbMigrator.migrate();
+    }
+
+    private static class Metadata {
+        private final int id;
+        private final String value;
+
+        @JsonCreator
+        Metadata(
+                @JsonProperty("id") int id,
+                @JsonProperty("value") String value) {
+            this.id = id;
+            this.value = value;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Metadata metadata = (Metadata) o;
+
+            if (id != metadata.id) {
+                return false;
+            }
+            return Objects.equals(value, metadata.value);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id;
+            result = 31 * result + (value != null ? value.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Metadata{" +
+                    "id=" + id +
+                    ", value='" + value + '\'' +
+                    '}';
+        }
     }
 }

@@ -5,6 +5,8 @@
 
 package dk.dbc.ticklerepo.dto;
 
+import dk.dbc.jsonb.JsonConverter;
+
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -56,6 +58,10 @@ public class Batch {
     private Timestamp timeOfCreation;
 
     private Timestamp timeOfCompletion;
+
+    @Column(columnDefinition = "jsonb")
+    @Convert(converter = JsonConverter.class)
+    private String metadata;
 
     public int getId() {
         return id;
@@ -111,6 +117,15 @@ public class Batch {
         return this;
     }
 
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public Batch withMetadata(String metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "Batch{" +
@@ -120,6 +135,7 @@ public class Batch {
                 ", type=" + type +
                 ", timeOfCreation=" + timeOfCreation +
                 ", timeOfCompletion=" + timeOfCompletion +
+                ", metadata='" + metadata + '\'' +
                 '}';
     }
 }
