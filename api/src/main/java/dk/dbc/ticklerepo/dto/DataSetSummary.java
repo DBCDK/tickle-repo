@@ -5,11 +5,9 @@
 
 package dk.dbc.ticklerepo.dto;
 
-import javax.persistence.Entity;
 import java.sql.Timestamp;
 import java.util.Date;
 
-@Entity
 public class DataSetSummary {
 
     private String name;
