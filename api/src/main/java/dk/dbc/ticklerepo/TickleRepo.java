@@ -7,6 +7,7 @@ package dk.dbc.ticklerepo;
 
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
+import dk.dbc.ticklerepo.dto.DataSetSummary;
 import dk.dbc.ticklerepo.dto.Record;
 import dk.dbc.ticklerepo.dto.RecordStatusConverter;
 import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
@@ -32,6 +33,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -45,6 +47,17 @@ import java.util.regex.Pattern;
 public class TickleRepo {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleRepo.class);
     private static final int DATASET_SIZE_ESTIMATE_THRESHOLD = 1000000;
+
+    private static final String GET_DATASET_SUMMARY_QUERY = "SELECT NEW dk.dbc.ticklerepo.dto.DataSetSummary(d.name," +
+            " COUNT(r)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.ACTIVE THEN 1 ELSE 0 END)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED THEN 1 ELSE 0 END)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.RESET THEN 1 ELSE 0 END)," +
+            " MAX(r.timeOfLastModification), " +
+            " MAX(r.batch))" +
+            " FROM Record r, DataSet d" +
+            " WHERE d.id = r.dataset" +
+            " GROUP BY d.name";
 
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
@@ -218,6 +231,11 @@ public class TickleRepo {
             }
         }
         return Optional.empty();
+    }
+
+    public List<DataSetSummary> getDataSetSummary() {
+       return entityManager.createQuery(GET_DATASET_SUMMARY_QUERY, DataSetSummary.class)
+               .getResultList();
     }
 
     private int mark(Batch batch) {

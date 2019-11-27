@@ -15,6 +15,7 @@ import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
+import dk.dbc.ticklerepo.dto.DataSetSummary;
 import dk.dbc.ticklerepo.dto.Record;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -33,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -347,6 +349,29 @@ public class TickleRepoIT extends JpaIntegrationTest {
     public void lookingUpRecordByDatasetAndLocalId() {
         final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
         assertThat(tickleRepo.lookupRecord(record).orElse(null).getId(), is(1));
+    }
+
+    @Test
+    public void getDataSetSummary() {
+        List<DataSetSummary> summary = tickleRepo.getDataSetSummary();
+
+        assertThat(summary.size(), is(2));
+
+        assertThat(summary.get(0).getName(), is("dataset1"));
+        assertThat(summary.get(0).getSum(), is(10L));
+        assertThat(summary.get(0).getActive(), is(9L));
+        assertThat(summary.get(0).getDeleted(), is(1L));
+        assertThat(summary.get(0).getReset(), is(0L));
+        assertThat(summary.get(0).getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.get(0).getBatchId(), is(1));
+
+        assertThat(summary.get(1).getName(), is("dataset2"));
+        assertThat(summary.get(1).getSum(), is(20L));
+        assertThat(summary.get(1).getActive(), is(9L));
+        assertThat(summary.get(1).getDeleted(), is(6L));
+        assertThat(summary.get(1).getReset(), is(5L));
+        assertThat(summary.get(1).getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.get(1).getBatchId(), is(3));
     }
 
     @Test
