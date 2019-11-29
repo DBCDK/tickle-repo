@@ -1,9 +1,13 @@
 INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset1', '123456', 'displayname1');
 INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset2', '123457', 'displayname2');
+INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset3', '123458', 'displayname3');
+INSERT INTO dataset(name, agencyId, displayName) VALUES ('dataset4', '123459', 'displayname4');
 
 INSERT INTO batch(dataset,batchkey,type) VALUES (1, 1000001, 'TOTAL');
 INSERT INTO batch(dataset,batchkey,type) VALUES (2, 1000002, 'TOTAL');
 INSERT INTO batch(dataset,batchkey,type) VALUES (2, 1000003, 'TOTAL');
+INSERT INTO batch(dataset,batchkey,type) VALUES (3, 1000005, 'TOTAL');
+INSERT INTO batch(dataset,batchkey,type) VALUES (4, 1000006, 'TOTAL');
 
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_1', 't1_1_1', 'data1_1_1', 'chksum1_1_1', 'ACTIVE');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (1, 1, 'local1_1_2', 't1_1_2', 'data1_1_2', 'chksum1_1_2', 'ACTIVE');
@@ -37,3 +41,6 @@ INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VAL
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (3, 2, 'local3_2_8', 't3_2_8', 'data3_2_8', 'chksum3_2_8', 'ACTIVE');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (3, 2, 'local3_2_9', 't3_2_9', 'data3_2_9', 'chksum3_2_9', 'ACTIVE');
 INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (3, 2, 'local3_2_10', 't3_2_10', 'data3_2_10', 'chksum3_2_10', 'DELETED');
+
+INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (4, 3, 'local_match', 't21_3_1', 'data21_3_1', 'chksum21_3_1', 'ACTIVE');
+INSERT INTO record(batch,dataset,localid,trackingid,content,checksum,status) VALUES (5, 4, 'local_match', 't22_4_1', 'data22_4_1', 'chksum22_4_1', 'ACTIVE');
