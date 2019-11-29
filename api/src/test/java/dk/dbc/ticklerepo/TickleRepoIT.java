@@ -125,7 +125,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
 
         Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
 
-        assertThat("batch ID", batchCreated.getId(), is(4));
+        assertThat("batch ID", batchCreated.getId(), is(6));
         assertThat("batch key", batchCreated.getBatchKey(), is(batch.getBatchKey()));
         assertThat("batch type", batchCreated.getType(), is(batch.getType()));
         assertThat("batch dateset", batchCreated.getDataset(), is(batch.getDataset()));
@@ -165,7 +165,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
 
         Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
 
-        assertThat("batch ID", batchCreated.getId(), is(4));
+        assertThat("batch ID", batchCreated.getId(), is(6));
         assertThat("batch key", batchCreated.getBatchKey(), is(batch.getBatchKey()));
         assertThat("batch type", batchCreated.getType(), is(batch.getType()));
         assertThat("batch dateset", batchCreated.getDataset(), is(batch.getDataset()));
@@ -355,7 +355,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
     public void getDataSetSummary() {
         List<DataSetSummary> summary = tickleRepo.getDataSetSummary();
 
-        assertThat(summary.size(), is(2));
+        assertThat(summary.size(), is(4));
 
         assertThat(summary.get(0).getName(), is("dataset1"));
         assertThat(summary.get(0).getSum(), is(10L));
@@ -372,6 +372,22 @@ public class TickleRepoIT extends JpaIntegrationTest {
         assertThat(summary.get(1).getReset(), is(5L));
         assertThat(summary.get(1).getTimeOfLastModification(), is(nullValue()));
         assertThat(summary.get(1).getBatchId(), is(3));
+
+        assertThat(summary.get(2).getName(), is("dataset3"));
+        assertThat(summary.get(2).getSum(), is(1L));
+        assertThat(summary.get(2).getActive(), is(1L));
+        assertThat(summary.get(2).getDeleted(), is(0L));
+        assertThat(summary.get(2).getReset(), is(0L));
+        assertThat(summary.get(2).getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.get(2).getBatchId(), is(4));
+
+        assertThat(summary.get(3).getName(), is("dataset4"));
+        assertThat(summary.get(3).getSum(), is(1L));
+        assertThat(summary.get(3).getActive(), is(1L));
+        assertThat(summary.get(3).getDeleted(), is(0L));
+        assertThat(summary.get(3).getReset(), is(0L));
+        assertThat(summary.get(3).getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.get(3).getBatchId(), is(5));
     }
 
     @Test
@@ -382,7 +398,7 @@ public class TickleRepoIT extends JpaIntegrationTest {
 
     @Test
     public void lookupDataSetByName_notPersisted_returnsOptionalEmpty() {
-        Optional<DataSet> dataSetOptional = tickleRepo.lookupDataSet(new DataSet().withName("dataset3"));
+        Optional<DataSet> dataSetOptional = tickleRepo.lookupDataSet(new DataSet().withName("datasetnotfound"));
         assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
     }
 
@@ -411,12 +427,42 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void lookupDataSetByRecordLocalId_SingleDataSet() {
+        Record record = new Record().withLocalId("local1_1_3");
+
+        List<DataSet> dataSets = tickleRepo.lookupDataSetByRecord(record);
+
+        assertThat(dataSets.size(), is(1));
+        assertThat(dataSets.get(0).getDisplayName(), is("displayname1"));
+    }
+
+    @Test
+    public void lookupDataSetByRecordLocalId_NoDataSet() {
+        Record record = new Record().withLocalId("doesn't exist");
+
+        List<DataSet> dataSets = tickleRepo.lookupDataSetByRecord(record);
+
+        assertThat(dataSets.size(), is(0));
+    }
+
+    @Test
+    public void lookupDataSetByRecordLocalId_MultipleDataSets() {
+        Record record = new Record().withLocalId("local_match");
+
+        List<DataSet> dataSets = tickleRepo.lookupDataSetByRecord(record);
+
+        assertThat(dataSets.size(), is(2));
+        assertThat(dataSets.get(0).getDisplayName(), is("displayname3"));
+        assertThat(dataSets.get(1).getDisplayName(), is("displayname4"));
+    }
+
+    @Test
     public void createDataSet_returns() {
         final DataSet persisted = env().getPersistenceContext().run(() ->
-                tickleRepo.createDataSet(new DataSet().withName("dataset3").withAgencyId(123458)));
-        assertThat("dataSet ID", persisted.getId(), is(3));
-        assertThat("dataSet name", persisted.getName(), is("dataset3"));
-        assertThat("dataSet agencyId", persisted.getAgencyId(), is(123458));
+                tickleRepo.createDataSet(new DataSet().withName("dataset6").withAgencyId(123460)));
+        assertThat("dataSet ID", persisted.getId(), is(5));
+        assertThat("dataSet name", persisted.getName(), is("dataset6"));
+        assertThat("dataSet agencyId", persisted.getAgencyId(), is(123460));
         assertThat("dataSet displayName", persisted.getDisplayName(), is(nullValue()));
     }
 

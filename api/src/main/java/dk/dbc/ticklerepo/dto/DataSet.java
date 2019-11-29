@@ -16,13 +16,19 @@ import javax.persistence.SequenceGenerator;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = DataSet.GET_DATASET_BY_NAME_QUERY_NAME, query = DataSet.GET_DATASET_BY_NAME_QUERY)
+        @NamedQuery(name = DataSet.GET_DATASET_BY_NAME_QUERY_NAME, query = DataSet.GET_DATASET_BY_NAME_QUERY),
+        @NamedQuery(name = DataSet.GET_DATASET_BY_RECORD_LOCALID_NAME, query = DataSet.GET_DATASET_BY_RECORD_LOCALID_QUERY)
 })
 public class DataSet {
 
     public static final String GET_DATASET_BY_NAME_QUERY_NAME = "DataSet.getDataSetByName";
     public static final String GET_DATASET_BY_NAME_QUERY =
             "SELECT dataset FROM DataSet dataSet WHERE dataset.name = :name";
+
+    public static final String GET_DATASET_BY_RECORD_LOCALID_NAME = "DataSet.getDataSetByRecordLocalId";
+    public static final String GET_DATASET_BY_RECORD_LOCALID_QUERY =
+            "SELECT dataset FROM DataSet dataset WHERE dataset.id IN (" +
+                    "SELECT record.dataset FROM Record record WHERE record.localId = :localId)";
 
     @Id
     @SequenceGenerator(
