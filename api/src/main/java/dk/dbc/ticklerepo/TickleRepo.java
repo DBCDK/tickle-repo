@@ -64,7 +64,8 @@ public class TickleRepo {
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
 
-    public TickleRepo() {}
+    public TickleRepo() {
+    }
 
     public TickleRepo(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -77,6 +78,7 @@ public class TickleRepo {
      * meaning any record remaining in the dataset with a status of ACTIVE
      * will have its status set to RESET.
      * </p>
+     *
      * @param batch batch to create
      * @return managed Batch object
      */
@@ -99,6 +101,7 @@ public class TickleRepo {
      * will have its status set to DELETED and its batch ID updated
      * to that of the given batch.
      * </p>
+     *
      * @param batch batch to close
      */
     public void closeBatch(Batch batch) {
@@ -116,6 +119,7 @@ public class TickleRepo {
      * meaning any record remaining in the dataset with a status of RESET
      * will have its status set back to ACTIVE and its batch ID left untouched.
      * </p>
+     *
      * @param batch batch to abort
      */
     public void abortBatch(Batch batch) {
@@ -127,6 +131,7 @@ public class TickleRepo {
 
     /**
      * Returns next batch compared to last batch seen if it is completed
+     *
      * @param lastSeenBatch last seen batch for a dataset
      * @return next available batch
      */
@@ -150,7 +155,8 @@ public class TickleRepo {
      * Changes the status of records in the dataset to DELETED if their time
      * of last modification is before given cut-off time and updates the
      * batch ID of these records to that of the given batch.
-     * @param batch batch for which to delete outdated records
+     *
+     * @param batch      batch for which to delete outdated records
      * @param cutOffTime threshold for outdated records
      */
     public void deleteOutdatedRecordsInBatch(Batch batch, Instant cutOffTime) {
@@ -169,6 +175,7 @@ public class TickleRepo {
      * <p>
      * This method needs to run in a transaction.
      * </p>
+     *
      * @param batch batch
      * @return batch iterator as ResultSet abstraction
      */
@@ -178,14 +185,15 @@ public class TickleRepo {
         return new ResultSet<>(query, new RecordMapping());
     }
 
-   /**
-    * Returns iterator for all records belonging to given data set
-    * <p>
-    * This method needs to run in a transaction.
-    * </p>
-     @param dataSet data set
-    * @return batch iterator as ResultSet abstraction
-    */
+    /**
+     * Returns iterator for all records belonging to given data set
+     * <p>
+     * This method needs to run in a transaction.
+     * </p>
+     *
+     * @param dataSet data set
+     * @return batch iterator as ResultSet abstraction
+     */
     public ResultSet<Record> getRecordsInDataSet(DataSet dataSet) {
         final Query query = entityManager.createNamedQuery(Record.GET_RECORDS_IN_DATASET_QUERY_NAME)
                 .setParameter(1, dataSet.getId());
@@ -194,6 +202,7 @@ public class TickleRepo {
 
     /**
      * Tries to lookup batch in repository either by batch ID or by batch key
+     *
      * @param value values placeholder
      * @return managed Batch object if found
      */
@@ -215,6 +224,7 @@ public class TickleRepo {
 
     /**
      * Tries to lookup record in repository either by record ID or by (dataset,localId) combination
+     *
      * @param value values placeholder
      * @return managed Record object if found
      */
@@ -236,8 +246,8 @@ public class TickleRepo {
     }
 
     public List<DataSetSummary> getDataSetSummary() {
-       return entityManager.createQuery(GET_DATASET_SUMMARY_QUERY, DataSetSummary.class)
-               .getResultList();
+        return entityManager.createQuery(GET_DATASET_SUMMARY_QUERY, DataSetSummary.class)
+                .getResultList();
     }
 
     private int mark(Batch batch) {
@@ -408,6 +418,7 @@ public class TickleRepo {
 
     /**
      * checks if the given dataSet is persisted in the underlying database
+     *
      * @param dataset to search for
      * @return Optional.empty() if the dataSet is not persisted, otherwise the persisted dataSet.
      */
@@ -416,7 +427,7 @@ public class TickleRepo {
             if (dataset.getId() > 0) {
                 return Optional.ofNullable(entityManager.find(DataSet.class, dataset.getId()));
             } else if (dataset.getName() != null) {
-               return entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME_QUERY_NAME, DataSet.class)
+                return entityManager.createNamedQuery(DataSet.GET_DATASET_BY_NAME_QUERY_NAME, DataSet.class)
                         .setParameter("name", dataset.getName())
                         .setMaxResults(1)
                         .getResultList()
@@ -440,6 +451,7 @@ public class TickleRepo {
     /**
      * Returns an estimate of the number of records in the given dataset or
      * the exact number if the estimate is below {@link #DATASET_SIZE_ESTIMATE_THRESHOLD}
+     *
      * @param dataSet dataset
      * @return estimated number of records
      */
@@ -468,6 +480,7 @@ public class TickleRepo {
 
     /**
      * Returns the number of records in the given dataset
+     *
      * @param dataSet dataset
      * @return number of records
      */
@@ -483,6 +496,7 @@ public class TickleRepo {
 
     /**
      * Persists the dataSet given as input
+     *
      * @param dataSet to persist
      * @return persisted dataSet
      */

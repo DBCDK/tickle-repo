@@ -24,18 +24,18 @@ import java.util.Date;
 
 @Entity
 @NamedQueries({
-    @NamedQuery(name = Record.GET_RECORD_BY_LOCALID_QUERY_NAME, query = Record.GET_RECORD_BY_LOCALID_QUERY),
-    @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY),
-    @NamedQuery(name = Record.GET_RECORDS_IN_DATASET_QUERY_NAME, query = Record.GET_RECORDS_IN_DATASET_QUERY),
-    @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
-    @NamedQuery(name = Record.UNDO_MARK_QUERY_NAME, query = Record.UNDO_MARK_QUERY),
-    @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY),
-    @NamedQuery(name = Record.SWEEP_OUTDATED_QUERY_NAME, query = Record.SWEEP_OUTDATED_QUERY),
+        @NamedQuery(name = Record.GET_RECORD_BY_LOCALID_QUERY_NAME, query = Record.GET_RECORD_BY_LOCALID_QUERY),
+        @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY),
+        @NamedQuery(name = Record.GET_RECORDS_IN_DATASET_QUERY_NAME, query = Record.GET_RECORDS_IN_DATASET_QUERY),
+        @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
+        @NamedQuery(name = Record.UNDO_MARK_QUERY_NAME, query = Record.UNDO_MARK_QUERY),
+        @NamedQuery(name = Record.SWEEP_QUERY_NAME, query = Record.SWEEP_QUERY),
+        @NamedQuery(name = Record.SWEEP_OUTDATED_QUERY_NAME, query = Record.SWEEP_OUTDATED_QUERY),
 })
 @NamedNativeQueries({
-    @NamedNativeQuery(name = Record.NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
+        @NamedNativeQuery(name = Record.NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
                 query = Record.NUMBER_OF_RECORDS_IN_DATASET_QUERY),
-    @NamedNativeQuery(name = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
+        @NamedNativeQuery(name = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
                 query = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY)
 })
 public class Record {
@@ -114,7 +114,8 @@ public class Record {
     private byte[] content;
     private String checksum;
 
-    public Record() {}
+    public Record() {
+    }
 
     public int getId() {
         return id;
@@ -212,7 +213,8 @@ public class Record {
 
     /**
      * Updates batch for this record if given checksum indicates a change when compared to current checksum
-     * @param batch record batch
+     *
+     * @param batch    record batch
      * @param checksum new checksum
      * @return this record
      */

@@ -20,8 +20,8 @@ import java.sql.Timestamp;
 
 @Entity
 @NamedQueries({
-    @NamedQuery(name = Batch.GET_NEXT_BATCH_QUERY_NAME, query = Batch.GET_NEXT_BATCH_QUERY),
-    @NamedQuery(name = Batch.GET_BATCH_BY_KEY_QUERY_NAME, query = Batch.GET_BATCH_BY_KEY_QUERY)
+        @NamedQuery(name = Batch.GET_NEXT_BATCH_QUERY_NAME, query = Batch.GET_NEXT_BATCH_QUERY),
+        @NamedQuery(name = Batch.GET_BATCH_BY_KEY_QUERY_NAME, query = Batch.GET_BATCH_BY_KEY_QUERY)
 })
 public class Batch {
     public static final String GET_BATCH_BY_KEY_QUERY =

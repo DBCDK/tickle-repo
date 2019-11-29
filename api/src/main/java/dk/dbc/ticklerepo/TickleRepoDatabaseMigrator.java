@@ -24,7 +24,8 @@ public class TickleRepoDatabaseMigrator {
     @Resource(lookup = "jdbc/tickle-repo")
     DataSource dataSource;
 
-    public TickleRepoDatabaseMigrator() {}
+    public TickleRepoDatabaseMigrator() {
+    }
 
     public TickleRepoDatabaseMigrator(DataSource dataSource) {
         this.dataSource = dataSource;
