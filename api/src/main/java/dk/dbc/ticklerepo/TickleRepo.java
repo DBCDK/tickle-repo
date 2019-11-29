@@ -31,6 +31,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -423,6 +425,16 @@ public class TickleRepo {
             }
         }
         return Optional.empty();
+    }
+
+    public List<DataSet> lookupDataSetByRecord(Record record) {
+        if (record != null && record.getLocalId() != null) {
+            return new ArrayList<>(entityManager.createNamedQuery(DataSet.GET_DATASET_BY_RECORD_LOCALID_NAME, DataSet.class)
+                    .setParameter("localId", record.getLocalId())
+                    .getResultList());
+        }
+
+        return Collections.emptyList();
     }
 
     /**

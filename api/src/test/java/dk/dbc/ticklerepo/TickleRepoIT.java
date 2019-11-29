@@ -411,6 +411,26 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void lookupDataSetByRecordLocalId_SingleDataSet() {
+        Record record = new Record().withLocalId("local1_1_3");
+
+        List<DataSet> dataSets = tickleRepo.lookupDataSetByRecord(record);
+
+        assertThat(dataSets.size(), is(1));
+    }
+
+    @Test
+    public void lookupDataSetByRecordLocalId_NoDataSet() {
+        Record record = new Record().withLocalId("doesn't exist");
+
+        List<DataSet> dataSets = tickleRepo.lookupDataSetByRecord(record);
+
+        assertThat(dataSets.size(), is(0));
+    }
+
+    // TODO Implement lookupDataSetByRecord test which has more than 1 hit
+
+    @Test
     public void createDataSet_returns() {
         final DataSet persisted = env().getPersistenceContext().run(() ->
                 tickleRepo.createDataSet(new DataSet().withName("dataset3").withAgencyId(123458)));

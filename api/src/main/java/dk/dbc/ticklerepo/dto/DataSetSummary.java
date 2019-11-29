@@ -82,7 +82,7 @@ public class DataSetSummary {
 
     public DataSetSummary withTimeOfLastModification(Date modified) {
         if (timeOfLastModification != null) {
-            this.timeOfLastModification = new Timestamp(timeOfLastModification.getTime());
+            this.timeOfLastModification = new Date(timeOfLastModification.getTime());
         }
         return this;
     }
