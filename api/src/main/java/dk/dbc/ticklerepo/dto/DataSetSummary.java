@@ -15,7 +15,7 @@ public class DataSetSummary {
     private Long active;
     private Long deleted;
     private Long reset;
-    private Date timeOfLastModification;
+    private Timestamp timeOfLastModification;
     private int batchId;
 
     public DataSetSummary() {
@@ -82,7 +82,7 @@ public class DataSetSummary {
 
     public DataSetSummary withTimeOfLastModification(Date modified) {
         if (timeOfLastModification != null) {
-            this.timeOfLastModification = new Date(timeOfLastModification.getTime());
+            this.timeOfLastModification = new Timestamp(timeOfLastModification.getTime());
         }
         return this;
     }
