@@ -72,6 +72,8 @@ public class TickleRepo {
             " WHERE d.id = ?1 AND d.id = r.dataset" +
             " GROUP BY d.name";
 
+    private static final String GET_DATASETS_BY_SUBMITTER_QUERY = "SELECT dataset FROM DataSet dataSet WHERE dataset.agencyId = ?1";
+
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
 
@@ -264,6 +266,12 @@ public class TickleRepo {
     public List<DataSetSummary> getDataSetBySubmitterIdSummary(int submitterId) {
         return entityManager.createQuery(GET_DATASET_BY_SUBMITTER_ID_SUMMARY_QUERY, DataSetSummary.class)
                 .setParameter(1, submitterId)
+                .getResultList();
+    }
+
+    public List<DataSet> getDataSetsBySubmitter(int submitter) {
+        return entityManager.createQuery(GET_DATASETS_BY_SUBMITTER_QUERY, DataSet.class)
+                .setParameter(1, submitter)
                 .getResultList();
     }
 
