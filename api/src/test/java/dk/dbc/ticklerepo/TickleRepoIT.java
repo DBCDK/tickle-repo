@@ -391,18 +391,22 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
-    public void getDataSetBySubmitterIdSummary() {
-        List<DataSetSummary> summary = tickleRepo.getDataSetBySubmitterIdSummary(3);
+    public void getDataSetSummaryByDataSetIdNonExistingDataSet() {
+        DataSetSummary summary = tickleRepo.getDataSetSummaryByDataSetId(21);
+        assertThat(summary, is(org.hamcrest.CoreMatchers.nullValue()));
+    }
 
-        assertThat(summary.size(), is(1));
+    @Test
+    public void getDataSetSummaryByDataSetId() {
+        DataSetSummary summary = tickleRepo.getDataSetSummaryByDataSetId(3);
 
-        assertThat(summary.get(0).getName(), is("dataset3"));
-        assertThat(summary.get(0).getSum(), is(1L));
-        assertThat(summary.get(0).getActive(), is(1L));
-        assertThat(summary.get(0).getDeleted(), is(0L));
-        assertThat(summary.get(0).getReset(), is(0L));
-        assertThat(summary.get(0).getTimeOfLastModification(), is(nullValue()));
-        assertThat(summary.get(0).getBatchId(), is(4));
+        assertThat(summary.getName(), is("dataset3"));
+        assertThat(summary.getSum(), is(1L));
+        assertThat(summary.getActive(), is(1L));
+        assertThat(summary.getDeleted(), is(0L));
+        assertThat(summary.getReset(), is(0L));
+        assertThat(summary.getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.getBatchId(), is(4));
     }
 
     @Test

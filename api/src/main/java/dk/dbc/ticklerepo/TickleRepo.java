@@ -61,7 +61,7 @@ public class TickleRepo {
             " WHERE d.id = r.dataset" +
             " GROUP BY d.name";
 
-    private static final String GET_DATASET_BY_SUBMITTER_ID_SUMMARY_QUERY = "SELECT NEW dk.dbc.ticklerepo.dto.DataSetSummary(d.name," +
+    private static final String GET_DATASET_SUMMARY_BY_DATASET_ID_QUERY = "SELECT NEW dk.dbc.ticklerepo.dto.DataSetSummary(d.name," +
             " COUNT(1)," +
             " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.ACTIVE THEN 1 ELSE 0 END)," +
             " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED THEN 1 ELSE 0 END)," +
@@ -263,10 +263,13 @@ public class TickleRepo {
                 .getResultList();
     }
 
-    public List<DataSetSummary> getDataSetBySubmitterIdSummary(int submitterId) {
-        return entityManager.createQuery(GET_DATASET_BY_SUBMITTER_ID_SUMMARY_QUERY, DataSetSummary.class)
-                .setParameter(1, submitterId)
-                .getResultList();
+    public DataSetSummary getDataSetSummaryByDataSetId(int dataSetId) {
+        return entityManager.createQuery(GET_DATASET_SUMMARY_BY_DATASET_ID_QUERY, DataSetSummary.class)
+                .setParameter(1, dataSetId)
+                .getResultList()
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 
     public List<DataSet> getDataSetsBySubmitter(int submitter) {
