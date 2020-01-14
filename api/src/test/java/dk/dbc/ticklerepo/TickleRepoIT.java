@@ -391,6 +391,21 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void getDataSetBySubmitterIdSummary() {
+        List<DataSetSummary> summary = tickleRepo.getDataSetBySubmitterIdSummary(3);
+
+        assertThat(summary.size(), is(1));
+
+        assertThat(summary.get(0).getName(), is("dataset3"));
+        assertThat(summary.get(0).getSum(), is(1L));
+        assertThat(summary.get(0).getActive(), is(1L));
+        assertThat(summary.get(0).getDeleted(), is(0L));
+        assertThat(summary.get(0).getReset(), is(0L));
+        assertThat(summary.get(0).getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.get(0).getBatchId(), is(4));
+    }
+
+    @Test
     public void lookupDataSetById_notPersisted_returnsOptionalEmpty() {
         Optional<DataSet> dataSetOptional = tickleRepo.lookupDataSet(new DataSet().withId(42));
         assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
