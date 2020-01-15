@@ -61,6 +61,19 @@ public class TickleRepo {
             " WHERE d.id = r.dataset" +
             " GROUP BY d.name";
 
+    private static final String GET_DATASET_SUMMARY_BY_DATASET_ID_QUERY = "SELECT NEW dk.dbc.ticklerepo.dto.DataSetSummary(d.name," +
+            " COUNT(1)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.ACTIVE THEN 1 ELSE 0 END)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.DELETED THEN 1 ELSE 0 END)," +
+            " SUM(CASE WHEN r.status = dk.dbc.ticklerepo.dto.Record.Status.RESET THEN 1 ELSE 0 END)," +
+            " MAX(r.timeOfLastModification), " +
+            " MAX(r.batch))" +
+            " FROM Record r, DataSet d" +
+            " WHERE d.id = ?1 AND d.id = r.dataset" +
+            " GROUP BY d.name";
+
+    private static final String GET_DATASETS_BY_SUBMITTER_QUERY = "SELECT dataset FROM DataSet dataSet WHERE dataset.agencyId = ?1";
+
     @PersistenceContext(unitName = "tickleRepoPU")
     EntityManager entityManager;
 
@@ -247,6 +260,21 @@ public class TickleRepo {
 
     public List<DataSetSummary> getDataSetSummary() {
         return entityManager.createQuery(GET_DATASET_SUMMARY_QUERY, DataSetSummary.class)
+                .getResultList();
+    }
+
+    public DataSetSummary getDataSetSummaryByDataSetId(int dataSetId) {
+        return entityManager.createQuery(GET_DATASET_SUMMARY_BY_DATASET_ID_QUERY, DataSetSummary.class)
+                .setParameter(1, dataSetId)
+                .getResultList()
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<DataSet> getDataSetsBySubmitter(int submitter) {
+        return entityManager.createQuery(GET_DATASETS_BY_SUBMITTER_QUERY, DataSet.class)
+                .setParameter(1, submitter)
                 .getResultList();
     }
 

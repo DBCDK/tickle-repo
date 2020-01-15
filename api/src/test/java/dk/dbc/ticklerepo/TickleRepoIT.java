@@ -391,6 +391,37 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void getDataSetSummaryByDataSetIdNonExistingDataSet() {
+        DataSetSummary summary = tickleRepo.getDataSetSummaryByDataSetId(21);
+        assertThat(summary, is(org.hamcrest.CoreMatchers.nullValue()));
+    }
+
+    @Test
+    public void getDataSetSummaryByDataSetId() {
+        DataSetSummary summary = tickleRepo.getDataSetSummaryByDataSetId(3);
+
+        assertThat(summary.getName(), is("dataset3"));
+        assertThat(summary.getSum(), is(1L));
+        assertThat(summary.getActive(), is(1L));
+        assertThat(summary.getDeleted(), is(0L));
+        assertThat(summary.getReset(), is(0L));
+        assertThat(summary.getTimeOfLastModification(), is(nullValue()));
+        assertThat(summary.getBatchId(), is(4));
+    }
+
+    @Test
+    public void getDataSetsBySubmitter() {
+        List<DataSet> datasets = tickleRepo.getDataSetsBySubmitter(123458);
+
+        assertThat(datasets.size(), is(1));
+
+        assertThat(datasets.get(0).getName(), is("dataset3"));
+        assertThat(datasets.get(0).getDisplayName(), is("displayname3"));
+        assertThat(datasets.get(0).getId(), is(3));
+        assertThat(datasets.get(0).getAgencyId(), is(123458));
+    }
+
+    @Test
     public void lookupDataSetById_notPersisted_returnsOptionalEmpty() {
         Optional<DataSet> dataSetOptional = tickleRepo.lookupDataSet(new DataSet().withId(42));
         assertThat("DataSet not present", dataSetOptional.isPresent(), is (false));
