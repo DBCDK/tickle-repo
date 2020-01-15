@@ -246,15 +246,20 @@ public class TickleRepo {
             if (value.getId() > 0) {
                 return Optional.ofNullable(entityManager.find(Record.class, value.getId()));
             } else if (value.getLocalId() != null && value.getDataset() > 0) {
-                return entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
+                Optional<Record> record = entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
                         .setParameter("dataset", value.getDataset())
                         .setParameter("localId", value.getLocalId())
                         .setMaxResults(1)
                         .getResultList()
                         .stream()
                         .findFirst();
+                if( record.isPresent() ) {
+                    entityManager.refresh(record.get());
+                }
+                return record;
             }
         }
+
         return Optional.empty();
     }
 
