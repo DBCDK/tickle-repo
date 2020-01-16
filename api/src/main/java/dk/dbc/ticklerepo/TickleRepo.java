@@ -244,7 +244,11 @@ public class TickleRepo {
     public Optional<Record> lookupRecord(Record value) {
         if (value != null) {
             if (value.getId() > 0) {
-                return Optional.ofNullable(entityManager.find(Record.class, value.getId()));
+                Optional<Record> record = Optional.ofNullable(entityManager.find(Record.class, value.getId()));
+                if( record.isPresent() && record.get() != null ) {
+                    entityManager.refresh(record.get());
+                }
+                return record;
             } else if (value.getLocalId() != null && value.getDataset() > 0) {
                 Optional<Record> record = entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
                         .setParameter("dataset", value.getDataset())
