@@ -341,6 +341,12 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void lookingUpRecordWhenIdIsNonExisting() {
+        final Record record = new Record().withDataset(1).withLocalId("unknown");
+        assertThat(tickleRepo.lookupRecord(record).isPresent(), is(false));
+    }
+
+    @Test
     public void lookingUpRecordById() {
         final Record record = new Record().withId(1);
         assertThat(tickleRepo.lookupRecord(record).orElse(null).getLocalId(), is("local1_1_1"));
