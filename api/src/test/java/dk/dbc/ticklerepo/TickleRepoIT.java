@@ -335,6 +335,11 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void lookingUpRecordWhenPlaceholderValueIsNull() {
+        assertThat(tickleRepo.lookupRecord(null).isPresent(), is(false));
+    }
+
+    @Test
     public void lookingUpRecordWhenPlaceholderValueIsIncomplete() {
         final Record record = new Record().withLocalId("local1_1_!");
         assertThat(tickleRepo.lookupRecord(record).isPresent(), is(false));
