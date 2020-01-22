@@ -31,6 +31,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -334,8 +335,19 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
+    public void lookingUpRecordWhenPlaceholderValueIsNull() {
+        assertThat(tickleRepo.lookupRecord(null).isPresent(), is(false));
+    }
+
+    @Test
     public void lookingUpRecordWhenPlaceholderValueIsIncomplete() {
         final Record record = new Record().withLocalId("local1_1_!");
+        assertThat(tickleRepo.lookupRecord(record).isPresent(), is(false));
+    }
+
+    @Test
+    public void lookingUpRecordWhenIdIsNonExisting() {
+        final Record record = new Record().withDataset(1).withLocalId("unknown");
         assertThat(tickleRepo.lookupRecord(record).isPresent(), is(false));
     }
 
@@ -349,6 +361,42 @@ public class TickleRepoIT extends JpaIntegrationTest {
     public void lookingUpRecordByDatasetAndLocalId() {
         final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
         assertThat(tickleRepo.lookupRecord(record).orElse(null).getId(), is(1));
+    }
+
+    @Test
+    public void lookingUpRecordByIdRefreshed() throws SQLException {
+        final Record record = new Record().withId(1);
+        final Record found = tickleRepo.lookupRecord(record).orElse(null);
+        assertThat(found.getLocalId(), is("local1_1_1"));
+        assertThat(new String(found.getContent()), is("data1_1_1"));
+
+        try (Connection conn = env().getDatasource().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("UPDATE record SET content = 'data1_1_1_updated' WHERE id = 1");
+        }
+
+        final Record updatedRecord = new Record().withId(1);
+        final Record updatedFound = tickleRepo.lookupRecord(updatedRecord).orElse(null);
+        assertThat(updatedFound.getLocalId(), is("local1_1_1"));
+        assertThat(new String(updatedFound.getContent()), is("data1_1_1_updated"));
+    }
+
+    @Test
+    public void lookingUpRecordByDatasetAndLocalIdRefreshed() throws SQLException {
+        final Record record = new Record().withDataset(1).withLocalId("local1_1_1");
+        final Record found = tickleRepo.lookupRecord(record).orElse(null);
+        assertThat(found.getId(), is(1));
+        assertThat(new String(found.getContent()), is("data1_1_1"));
+
+        try (Connection conn = env().getDatasource().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("UPDATE record SET content = 'data1_1_1_updated' WHERE id = 1");
+        }
+
+        final Record updatedRecord = new Record().withDataset(1).withLocalId("local1_1_1");
+        final Record updatedFound = tickleRepo.lookupRecord(updatedRecord).orElse(null);
+        assertThat(updatedFound.getId(), is(1));
+        assertThat(new String(updatedFound.getContent()), is("data1_1_1_updated"));
     }
 
     @Test

@@ -242,11 +242,12 @@ public class TickleRepo {
      * @return managed Record object if found
      */
     public Optional<Record> lookupRecord(Record value) {
+        Optional<Record> record = Optional.empty();
         if (value != null) {
             if (value.getId() > 0) {
-                return Optional.ofNullable(entityManager.find(Record.class, value.getId()));
+                record = Optional.ofNullable(entityManager.find(Record.class, value.getId()));
             } else if (value.getLocalId() != null && value.getDataset() > 0) {
-                return entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
+                record = entityManager.createNamedQuery(Record.GET_RECORD_BY_LOCALID_QUERY_NAME, Record.class)
                         .setParameter("dataset", value.getDataset())
                         .setParameter("localId", value.getLocalId())
                         .setMaxResults(1)
@@ -255,7 +256,14 @@ public class TickleRepo {
                         .findFirst();
             }
         }
-        return Optional.empty();
+
+        // Other systems may update the record so we need to refresh the object to make sure the current
+        // version is returned.
+        if( record.isPresent() && record.get() != null ) {
+            entityManager.refresh(record.get());
+        }
+
+        return record;
     }
 
     public List<DataSetSummary> getDataSetSummary() {
