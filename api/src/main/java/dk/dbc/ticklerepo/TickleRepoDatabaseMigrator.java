@@ -37,7 +37,7 @@ public class TickleRepoDatabaseMigrator {
                 .table("schema_version")
                 .dataSource(dataSource)
                 .baselineOnMigrate(true)
-                .locations("classpath:dk.dbc.ticklerepo.db.migration")
+                .locations("classpath:dk/dbc/ticklerepo/db/migration")
                 .load();
         for (MigrationInfo info : flyway.info().all()) {
             LOGGER.info("database migration {} : {} from file '{}'",
