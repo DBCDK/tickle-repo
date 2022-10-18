@@ -1,5 +1,4 @@
 #!groovy
-
 @Library('metascrum')
 import dk.dbc.metascrum.jenkins.Maven
 
