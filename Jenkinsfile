@@ -31,7 +31,7 @@ pipeline {
 		stage("verify") {
 			steps {
 				script {
- 					Maven.verify()
+ 					Maven.verify(this)
 				}
 			}
 		}
