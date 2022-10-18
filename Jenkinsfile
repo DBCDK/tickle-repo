@@ -1,6 +1,6 @@
 #!groovy
 @Library('metascrum')
-import dk.dbc.metascrum.jenkins.Maven
+import dk.dbc.metascrum.jenkins.MetascrumMaven
 
 def workerNode = "devel11"
 
@@ -30,7 +30,7 @@ pipeline {
 
 		stage("verify") {
 			steps {
-				Maven.verify(this)
+				MetascrumMaven.verify(this)
 			}
 		}
 
