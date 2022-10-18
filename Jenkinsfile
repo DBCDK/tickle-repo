@@ -30,7 +30,8 @@ pipeline {
 
 		stage("verify") {
 			steps {
-				MetascrumMaven.verify(this)
+				def m = new MetascrumMaven()
+				m.verify(this)
 			}
 		}
 
