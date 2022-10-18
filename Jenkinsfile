@@ -30,10 +30,8 @@ pipeline {
 
 		stage("verify") {
 			steps {
-				script {
-					def m = new MetascrumMaven()
-					m.verify(this)
-				}
+
+				MetascrumMaven.verify(this)
 			}
 		}
 
