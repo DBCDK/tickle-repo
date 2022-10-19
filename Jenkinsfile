@@ -13,6 +13,7 @@ pipeline {
 
     environment {
 		GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
+		MAVEN_OPTS="-Dmaven.repo.local=\$WORKSPACE/.repo"
 	}
 
 	options {
