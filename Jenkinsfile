@@ -1,6 +1,7 @@
 #!groovy
 @Library('metascrum')
 import dk.dbc.metascrum.jenkins.Maven
+// Defined in https://github.com/DBCDK/metascrum-pipeline-library/blob/master/src/dk/dbc/metascrum/jenkins/Maven.groovy
 
 def workerNode = "devel11"
 
@@ -42,7 +43,9 @@ pipeline {
                 branch "master"
             }
 			steps {
-				sh "mvn -Dmaven.test.skip=true jar:jar deploy:deploy"
+				script {
+					Maven.deploy(this)
+				}
 			}
 		}
     }
