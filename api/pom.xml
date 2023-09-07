@@ -13,21 +13,28 @@
   <parent>
     <artifactId>tickle-repo</artifactId>
     <groupId>dk.dbc</groupId>
-    <version>1.1-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>tickle-repo-api</artifactId>
   <name>tickle-repo-api</name>
 
   <dependencies>
+
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-web-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
       <groupId>com.opentable.components</groupId>
       <artifactId>otj-pg-embedded</artifactId>
+      <version>1.0.1</version>
     </dependency>
+
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-jdbc-util</artifactId>
@@ -44,10 +51,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>json-binding</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
     </dependency>
@@ -58,6 +61,8 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
+      <version>4.0.2</version> <!-- TickleRepoIT blows up with 4.0.0 -->
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

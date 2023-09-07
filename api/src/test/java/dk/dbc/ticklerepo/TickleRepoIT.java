@@ -7,23 +7,23 @@ package dk.dbc.ticklerepo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules;
 import com.opentable.db.postgres.junit.SingleInstancePostgresRule;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.DataSetSummary;
 import dk.dbc.ticklerepo.dto.Record;
+import jakarta.persistence.Query;
+import jakarta.persistence.RollbackException;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.Query;
-import javax.persistence.RollbackException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,7 +31,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -199,19 +198,19 @@ public class TickleRepoIT extends JpaIntegrationTest {
     }
 
     @Test
-    public void creatingBatchWithMetadata() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
+    public void creatingBatchWithMetadata() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
         final Metadata metadata = new Metadata(42, "test");
 
         final Batch batch = new Batch()
                 .withBatchKey(1000004)
                 .withType(Batch.Type.INCREMENTAL)
                 .withDataset(env().getEntityManager().find(DataSet.class, 1).getId())
-                .withMetadata(jsonbContext.marshall(metadata));
+                .withMetadata(mapper.writeValueAsString(metadata));
 
         Batch batchCreated = env().getPersistenceContext().run(() -> tickleRepo.createBatch(batch));
 
-        assertThat(jsonbContext.unmarshall(batchCreated.getMetadata(), Metadata.class), is(metadata));
+        assertThat(mapper.readValue(batchCreated.getMetadata(), Metadata.class), is(metadata));
     }
 
     @Test

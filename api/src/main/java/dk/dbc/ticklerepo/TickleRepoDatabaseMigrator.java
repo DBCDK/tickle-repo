@@ -10,10 +10,10 @@ import org.flywaydb.core.api.MigrationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
 import javax.sql.DataSource;
 
 @Startup
@@ -24,6 +24,7 @@ public class TickleRepoDatabaseMigrator {
     @Resource(lookup = "jdbc/tickle-repo")
     DataSource dataSource;
 
+    @SuppressWarnings("unused")
     public TickleRepoDatabaseMigrator() {
     }
 
