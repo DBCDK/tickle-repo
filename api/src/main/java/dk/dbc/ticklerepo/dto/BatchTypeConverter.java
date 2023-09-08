@@ -7,8 +7,8 @@ package dk.dbc.ticklerepo.dto;
 
 import org.postgresql.util.PGobject;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.sql.SQLException;
 
 @Converter

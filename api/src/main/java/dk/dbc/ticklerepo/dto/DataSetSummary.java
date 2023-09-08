@@ -8,6 +8,7 @@ package dk.dbc.ticklerepo.dto;
 import java.sql.Timestamp;
 import java.util.Date;
 
+@SuppressWarnings("unused")
 public class DataSetSummary {
 
     private String name;
