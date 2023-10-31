@@ -18,6 +18,9 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
+import org.eclipse.persistence.annotations.Cache;
+import org.eclipse.persistence.annotations.CacheType;
+
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -25,6 +28,7 @@ import java.util.Date;
 @Entity
 @NamedQueries({
         @NamedQuery(name = Record.GET_RECORD_BY_LOCALID_QUERY_NAME, query = Record.GET_RECORD_BY_LOCALID_QUERY),
+        @NamedQuery(name = Record.GET_RECORDS_BY_LOCALIDS_QUERY_NAME, query = Record.GET_RECORDS_BY_LOCALIDS_QUERY),
         @NamedQuery(name = Record.GET_RECORDS_IN_BATCH_QUERY_NAME, query = Record.GET_RECORDS_IN_BATCH_QUERY),
         @NamedQuery(name = Record.GET_RECORDS_IN_DATASET_QUERY_NAME, query = Record.GET_RECORDS_IN_DATASET_QUERY),
         @NamedQuery(name = Record.MARK_QUERY_NAME, query = Record.MARK_QUERY),
@@ -38,10 +42,14 @@ import java.util.Date;
         @NamedNativeQuery(name = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY_NAME,
                 query = Record.ESTIMATED_NUMBER_OF_RECORDS_IN_DATASET_QUERY)
 })
+@Cache(type = CacheType.WEAK, disableHits = true)
 public class Record {
     public static final String GET_RECORD_BY_LOCALID_QUERY =
             "SELECT record FROM Record record WHERE record.dataset = :dataset AND record.localId = :localId";
     public static final String GET_RECORD_BY_LOCALID_QUERY_NAME = "Record.getRecordByLocalId";
+    public static final String GET_RECORDS_BY_LOCALIDS_QUERY =
+            "SELECT record FROM Record record WHERE record.dataset = :dataset AND record.localId in :localIds";
+    public static final String GET_RECORDS_BY_LOCALIDS_QUERY_NAME = "Record.getRecordsByLocalIds";
 
     public static final String GET_RECORDS_IN_BATCH_QUERY =
             "SELECT record FROM Record record WHERE record.batch = ?1 ORDER BY record.id ASC";

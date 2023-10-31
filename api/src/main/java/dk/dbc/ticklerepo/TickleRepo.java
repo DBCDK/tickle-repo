@@ -10,14 +10,6 @@ import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.DataSetSummary;
 import dk.dbc.ticklerepo.dto.Record;
 import dk.dbc.ticklerepo.dto.RecordStatusConverter;
-import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
-import org.eclipse.persistence.jpa.JpaEntityManager;
-import org.eclipse.persistence.queries.DatabaseQuery;
-import org.eclipse.persistence.sessions.DatabaseRecord;
-import org.eclipse.persistence.sessions.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -26,6 +18,15 @@ import jakarta.persistence.Parameter;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
+import org.eclipse.persistence.config.QueryHints;
+import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
+import org.eclipse.persistence.jpa.JpaEntityManager;
+import org.eclipse.persistence.queries.DatabaseQuery;
+import org.eclipse.persistence.sessions.DatabaseRecord;
+import org.eclipse.persistence.sessions.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -36,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -117,12 +119,13 @@ public class TickleRepo {
      *
      * @param batch batch to close
      */
-    public void closeBatch(Batch batch) {
+    public Batch closeBatch(Batch batch) {
         batch = entityManager.merge(batch);
         if (batch.getType() == Batch.Type.TOTAL) {
             LOGGER.info("{} records swept for batch {}", sweep(batch), batch);
         }
         batch.withTimeOfCompletion(new Timestamp(new Date().getTime()));
+        return batch;
     }
 
     /**
@@ -135,11 +138,11 @@ public class TickleRepo {
      *
      * @param batch batch to abort
      */
-    public void abortBatch(Batch batch) {
+    public Batch abortBatch(Batch batch) {
         if (batch.getType() == Batch.Type.TOTAL) {
             LOGGER.info("{} marks undone for batch {}", undoMark(batch), batch);
         }
-        closeBatch(batch);
+        return closeBatch(batch);
     }
 
     /**
@@ -220,9 +223,14 @@ public class TickleRepo {
      * @return managed Batch object if found
      */
     public Optional<Batch> lookupBatch(Batch value) {
+        return lookupBatch(value, false);
+    }
+
+
+    public Optional<Batch> lookupBatch(Batch value, boolean readOnly) {
         if (value != null) {
             if (value.getId() > 0) {
-                return Optional.ofNullable(entityManager.find(Batch.class, value.getId()));
+                return Optional.ofNullable(entityManager.find(Batch.class, value.getId(), Map.of(QueryHints.READ_ONLY, readOnly)));
             } else if (value.getBatchKey() > 0) {
                 return entityManager.createNamedQuery(Batch.GET_BATCH_BY_KEY_QUERY_NAME, Batch.class)
                         .setParameter("key", value.getBatchKey())
@@ -233,6 +241,17 @@ public class TickleRepo {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Lookup a list of records by their localId, belonging to a dataset
+     */
+    public List<Record> lookupRecords(int dataset, List<String> localIds) {
+        if(localIds.isEmpty()) return List.of();
+        return entityManager.createNamedQuery(Record.GET_RECORDS_BY_LOCALIDS_QUERY_NAME, Record.class)
+                .setParameter("dataset", dataset)
+                .setParameter("localIds", localIds)
+                .getResultList();
     }
 
     /**
