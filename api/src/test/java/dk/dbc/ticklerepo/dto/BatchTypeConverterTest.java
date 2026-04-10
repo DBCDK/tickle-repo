@@ -1,14 +1,13 @@
 package dk.dbc.ticklerepo.dto;
 
-import dk.dbc.commons.testutil.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.postgresql.util.PGobject;
 
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BatchTypeConverterTest {
 
@@ -32,7 +31,7 @@ public class BatchTypeConverterTest {
 
     @Test
     public void convertToEntityAttribute_dbValueArgIsNull_throws() {
-        Assert.assertThat(() -> converter.convertToEntityAttribute(null), isThrowing(IllegalArgumentException.class));
+        assertThrows(IllegalArgumentException.class, () -> converter.convertToEntityAttribute(null));
     }
 
     @Test
