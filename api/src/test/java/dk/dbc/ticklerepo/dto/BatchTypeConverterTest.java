@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.ticklerepo.dto;
 
 import dk.dbc.commons.testutil.Assert;
@@ -13,7 +8,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BatchTypeConverterTest {
 

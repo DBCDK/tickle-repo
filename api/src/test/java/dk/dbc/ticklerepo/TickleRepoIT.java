@@ -1,18 +1,12 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
-
 package dk.dbc.ticklerepo;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opentable.db.postgres.junit.EmbeddedPostgresRules;
-import com.opentable.db.postgres.junit.SingleInstancePostgresRule;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.commons.testcontainers.postgres.DBCPostgreSQLContainer;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.DataSetSummary;
@@ -20,7 +14,6 @@ import dk.dbc.ticklerepo.dto.Record;
 import jakarta.persistence.Query;
 import jakarta.persistence.RollbackException;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -43,24 +36,37 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TickleRepoIT extends JpaIntegrationTest {
-    @ClassRule
-    public static SingleInstancePostgresRule tickleDB = EmbeddedPostgresRules.singleInstance();
+
+    public static final DBCPostgreSQLContainer dbcPostgreSQLContainer = makePostgresContainer();
+
+    private static DBCPostgreSQLContainer makePostgresContainer() {
+        final DBCPostgreSQLContainer postgreSQLContainer = new DBCPostgreSQLContainer();
+        postgreSQLContainer.start();
+        postgreSQLContainer.exposeHostPort();
+        setupDatabase(postgreSQLContainer);
+        return postgreSQLContainer;
+    }
+
+    private static void setupDatabase(DBCPostgreSQLContainer dbcPostgreSQLContainer) {
+        TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(dbcPostgreSQLContainer.datasource());
+        dbMigrator.migrate();
+    }
 
     @Override
     public JpaTestEnvironment setup() {
-        migrateDatabase(tickleDB.getEmbeddedPostgres().getPostgresDatabase());
-        return new JpaTestEnvironment((PGSimpleDataSource) tickleDB.getEmbeddedPostgres().getPostgresDatabase(),
-                "tickleRepoIT");
+        jpaTestEnvironment = new JpaTestEnvironment((PGSimpleDataSource) dbcPostgreSQLContainer.datasource(), "tickleRepoIT");
+        return jpaTestEnvironment;
     }
 
     @Before
     public void resetDatabase() throws SQLException {
-        try (Connection conn = env().getDatasource().getConnection();
+        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection();
              Statement statement = conn.createStatement()) {
+            
             statement.executeUpdate("DELETE FROM record");
             statement.executeUpdate("DELETE FROM batch");
             statement.executeUpdate("DELETE FROM dataset");
